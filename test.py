@@ -1,11 +1,27 @@
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
 from utils import state_to_text, action_txt_to_idx
-from llm_policy_elevator import ElvatorLLMPolicyAgent
+from agents.llm_policy_elevator import ElvatorLLMPolicyAgent
+from agents.random_agent import RandomAgent
 from tqdm import tqdm
+import argparse
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run elevator environment")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random)")
+    return parser.parse_args()
+
+args = parse_args()
 
 env = Elevator(instance=5)
-agent = ElvatorLLMPolicyAgent(device="cuda", debug=False)
+agent = None
+
+if args.agent == "llm":
+    agent = ElvatorLLMPolicyAgent(device="cuda", debug=True)
+elif args.agent == "random":
+    agent = RandomAgent()
+else:
+    raise ValueError("Invalid agent")
 
 state = env.reset()
 state = env.disc2state(state)

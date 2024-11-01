@@ -1,7 +1,7 @@
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
 from utils import state_to_text, action_txt_to_idx
-from llm_policy_elevator import ElvatorLLMPolicyAgent
+from agents.llm_policy_elevator import ElvatorLLMPolicyAgent
 
 env = Elevator(instance=5)
 agent = ElvatorLLMPolicyAgent(device="cuda", debug=True)
