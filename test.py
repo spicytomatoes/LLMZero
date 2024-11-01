@@ -1,30 +1,32 @@
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
-from utils import state_to_text, action_txt_to_idx
+from utils import state_to_text, action_txt_to_idx, make_elevator_env
 from agents.llm_policy_elevator import ElvatorLLMPolicyAgent
 from agents.random_agent import RandomAgent
+from agents.mcts import MCTSAgent
 from tqdm import tqdm
 import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
-    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random)")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts)")
     return parser.parse_args()
 
 args = parse_args()
 
-env = Elevator(instance=5)
+env = make_elevator_env(env_instance=5)
 agent = None
 
 if args.agent == "llm":
     agent = ElvatorLLMPolicyAgent(device="cuda", debug=True)
 elif args.agent == "random":
     agent = RandomAgent()
+elif args.agent == "mcts":
+    agent = MCTSAgent(env, use_llm=False, debug=False)
 else:
     raise ValueError("Invalid agent")
 
 state = env.reset()
-state = env.disc2state(state)
 
 num_episodes_to_run = 10
 rewards = []
@@ -35,12 +37,10 @@ for i in pbar:
     num_steps = 0
     total_reward = 0
     state = env.reset()
-    state = env.disc2state(state)
     
     while True:
         action = agent.act(state)
         next_state, reward, done, info = env.step(action)
-        next_state = env.disc2state(next_state)
         
         total_reward += reward
         

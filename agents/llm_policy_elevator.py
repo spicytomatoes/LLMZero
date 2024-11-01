@@ -14,6 +14,7 @@ from utils import state_to_text, action_txt_to_idx
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+# TO DO: abstract out the LLM model and the environment specific code
 class ElvatorLLMPolicyAgent:
     def __init__(self, 
                  device, 

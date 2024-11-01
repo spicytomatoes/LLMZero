@@ -1,3 +1,71 @@
+import re
+import gym
+from pyRDDLGym.Elevator import Elevator
+from pyRDDLGym.Core.ErrorHandling.RDDLException import RDDLInvalidNumberOfArgumentsError
+import copy
+
+class ElevatorEnvWrapper(gym.Wrapper):
+    '''
+    wrapper for Elevator environment to enable reseting to a specific state and other features
+    '''
+    def __init__(self, env):
+        super(ElevatorEnvWrapper, self).__init__(env)
+        
+        self.orig_subs = None
+        self.orig_H = None
+        self.done = False
+        
+    def reset(self, seed=None):
+        state = self.base_env.reset(seed)
+        self.orig_subs = None
+        self.orig_H = None
+        self.done = False
+        return state
+    
+    def begin_search(self):
+        self.orig_subs = copy.deepcopy(self.base_env.sampler.subs)
+        self.orig_H = copy.deepcopy(self.base_env.currentH)
+        self.done = self.base_env.done
+        
+    def end_search(self):
+        # reset the environment to the state before the search
+        self.base_env.sampler.reset(copy.deepcopy(self.orig_subs))
+        self.base_env.currentH = copy.deepcopy(self.orig_H)
+        self.done = self.base_env.done                
+        
+    def step(self, action):
+        action = self.map_action(action)
+        cont_action = self.disc2action(action)
+        next_state, reward, done, info = self.base_env.step(cont_action)
+        return next_state, reward, done, info
+    
+    def get_valid_actions(self):
+        return range(4) # 0: nothing, 1: move, 2: close door, 3: open door
+    
+    def map_action(self, action):
+        if action == 0:
+            return 0
+        elif action == 1:
+            return 1
+        elif action == 2:
+            return 3
+        elif action == 3:
+            return 5
+        else:
+            raise ValueError(f"Invalid action {action}")
+    
+def make_elevator_env(env_instance=5):
+    env = Elevator(instance=env_instance)
+    env = ElevatorEnvWrapper(env)
+    return env
+
+class DictToObject:
+    def __init__(self, dictionary):
+        for key, value in dictionary.items():
+            setattr(self, key, value)
+
+
+# TO DO: refactor relevant functions into ElevatorEnvWrapper
 def state_to_text(state_dict):
     state_text = ""
     
@@ -41,9 +109,9 @@ def action_txt_to_idx(action_txt):
         if action_txt == "move":
             return 1
         elif action_txt == "open":
-            return 5
-        elif action_txt == "close":
             return 3
+        elif action_txt == "close":
+            return 2
         elif action_txt == "nothing":
             return 0
         else:
@@ -60,3 +128,30 @@ def action_to_text(action):
         return "open door"
     else:
         raise ValueError(f"Invalid action {action}")
+    
+def env_state_2_rddl_state(env_state):
+    '''
+    Convert the environment state to rddl state for restting to a specific state.
+    Will probably bug out for other environments. (currently testing on Elevator)
+    '''
+    rddl_state_tmp = {}
+    
+    for features, value in env_state.items():
+        feature_type = re.search(r"(.+?)___", features).group(1)
+        feature_id = re.search(r"\d+$", features).group()
+        feature_id = int(feature_id)
+        
+        if feature_type not in rddl_state_tmp:
+            rddl_state_tmp[feature_type] = []
+            
+        rddl_state_tmp[feature_type].append((feature_id, value))
+        
+    #sort the features
+    rddl_state = {}
+    
+    for feature_type, feature_list in rddl_state_tmp.items():
+        feature_list.sort(key=lambda x: x[0])
+        feature_list = [x[1] for x in feature_list]
+        rddl_state[feature_type] = feature_list            
+        
+    return rddl_state
