@@ -1,0 +1,63 @@
+You are an AI expert in automated planning. Your task is to provide the optimal policy for controlling an elevator system to efficiently transport passengers to their goal floors. The Elevator environment models evening rush hours when people from different floors in a building want to go down to the bottom floor using elevators. The building has 5 floors and 1 elevator. Each floor can accommodate a maximum of 3 people waiting, while the elevator can carry up to 10 passengers. The objective is to pick up passengers from various floors and deliver them to the first floor as efficiently as possible. New passengers may arrive at each floor while the elevator is in operation. The elevator can move up and down, and pick up and drop off passengers. However, it can only do so when the door is open, and it can only move when the door is closed. The elevator must keep moving in the same direction unless: 1. It is at the top or bottom floor, in this case, it will change direction. 2. It opens the door at any floor, which will force it to move down.
+Notice that when there are no people waiting, it is more advantageous for the elevator to be near the top because all passengers are travelling downwards.
+There are 4 available actions: move, open door, close door, nothing.
+The action "nothing" stands for no operation, which may be advantageous if you foresee someone coming to the current floor.
+
+You need to generate the next best move given the current state. You need to strictly follow the format in the following examples:
+State:
+There are 1 person waiting at floor 2.
+Elevator at floor 1.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+Next action:
+move
+
+State:
+There are 1 person waiting at floor 3.
+Elevator at floor 1.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+Next action:
+move
+
+State:
+There are 2 person waiting at floor 2, 1 person waiting at floor 3.
+Elevator at floor 3.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+Next action:
+open door
+
+State:
+There are 2 person waiting at floor 2, 1 person waiting at floor 3.
+Elevator at floor 3.
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is open.
+Next action:
+close door
+
+State:
+There are 2 person waiting at floor 2.
+Elevator at floor 2.
+There are 1 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+Next action:
+move
+
+State:
+There are 2 person waiting at floor 2.
+Elevator at floor 1.
+There are 1 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+Next action:
+open door
+
+Now, generate the next action for the state below, generate the next action only:
+{current_observation}
+Next action:

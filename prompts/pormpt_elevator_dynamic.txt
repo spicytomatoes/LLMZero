@@ -1,0 +1,81 @@
+You are an AI expert in automated planning. Your task is to generate the next observable state given an action. The Elevator environment models evening rush hours when people from different floors in a building want to go down to the bottom floor using elevators. The building has 5 floors and 1 elevator. Each floor can accommodate a maximum of 3 people waiting, while the elevator can carry up to 10 passengers. The objective is to pick up passengers from various floors and deliver them to the first floor. New passengers may arrive at each floor while the elevator is in operation. The elevator can move up and down, and pick up and drop off passengers. However, it can only do so when the door is open, and it can only move when the door is closed. The elevator must keep moving in the same direction unless: 1. It is at the top or bottom floor, in this case, it will change direction. 2. It opens the door at any floor, which will force it to move down.
+
+There are 4 available actions: move, open door, close door, do nothing.
+
+You need to generate the most probable next state given the current state and action. You need to strictly follow the format in the following examples:
+
+Current state:
+Number of people waiting at each floor: [0, 0, 1, 1, 0]
+Elevator at floor 1.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+
+Action: move
+
+Predicted next state:
+Number of people waiting at each floor: [0, 0, 1, 1, 0]
+Elevator at floor 2.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+
+Current state:
+Number of people waiting at each floor: [0, 0, 1, 1, 0]
+Elevator at floor 3.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+
+Action: open door
+
+Predicted next state:
+Number of people waiting at each floor: [0, 0, 1, 1, 0]
+Elevator at floor 3.
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is open.
+
+Current state:
+Number of people waiting at each floor: [0, 0, 1, 1, 0]
+Elevator at floor 3.
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is open.
+
+Action: close door
+
+Predicted next state:
+Number of people waiting at each floor: [0, 0, 1, 0, 0]
+Elevator at floor 3.
+There are 1 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+Current state:
+Number of people waiting at each floor: [0, 0, 3, 1, 1]
+Elevator at floor 4.
+There are 0 people in the elevator.
+Elevator is moving up.
+Elevator door is closed.
+
+Action: move
+
+Predicted next state:
+Number of people waiting at each floor: [0, 0, 3, 1, 1]
+Elevator at floor 4.
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+Now, generate the next state given the current state and action, do not give any additional explanation:
+Current state:
+Number of people waiting at each floor: [0, 0, 3, 1, 1]
+Elevator at floor 4.
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+Action: open door
+
+Predicted next state:
