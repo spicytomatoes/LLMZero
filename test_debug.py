@@ -2,11 +2,13 @@ import numpy as np
 from utils import state_to_text, action_to_text, make_elevator_env
 from agents.llm_policy_elevator import ElvatorLLMPolicyAgent
 from agents.mcts import MCTSAgent
+from agents.expert_policy import ExpertPolicyAgent
 import copy
 
 env = make_elevator_env(env_instance=5)
 #agent = ElvatorLLMPolicyAgent(device="cuda", debug=True)
-agent = MCTSAgent(env, use_llm=False, debug=True)
+#agent = MCTSAgent(env, use_llm=False, debug=True)
+agent = ExpertPolicyAgent()
 
 state = env.reset()
 
@@ -19,7 +21,7 @@ while True:
     
     state, reward, done, _ = env.step(action)
     
-    print(f"action: {action_to_text(action)}")
+    print(f"action: {action_to_text(env.map_action(action))}")
     print(f"state:\n{state_to_text(state)}")
     print("reward: ", reward)
     

@@ -4,12 +4,13 @@ from utils import state_to_text, action_txt_to_idx, make_elevator_env
 from agents.llm_policy_elevator import ElvatorLLMPolicyAgent
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
+from agents.expert_policy import ExpertPolicyAgent
 from tqdm import tqdm
 import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
-    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts)")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert)")
     return parser.parse_args()
 
 args = parse_args()
@@ -23,6 +24,8 @@ elif args.agent == "random":
     agent = RandomAgent()
 elif args.agent == "mcts":
     agent = MCTSAgent(env, use_llm=False, debug=False)
+elif args.agent == "expert":
+    agent = ExpertPolicyAgent()
 else:
     raise ValueError("Invalid agent")
 

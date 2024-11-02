@@ -61,7 +61,7 @@ class MCTSAgent:
             "num_simulations": 1000,
             "c_puct": 100,    #should be proportional to the scale of the rewards
             "gamma": 0.99,
-            "max_depth": 32,
+            "max_depth": 20,
         }
         
         if args is not None:
