@@ -3,6 +3,7 @@ import gym
 from pyRDDLGym.Elevator import Elevator
 from pyRDDLGym.Core.ErrorHandling.RDDLException import RDDLInvalidNumberOfArgumentsError
 import copy
+import numpy as np
 
 class ElevatorEnvWrapper(gym.Wrapper):
     '''
@@ -11,27 +12,26 @@ class ElevatorEnvWrapper(gym.Wrapper):
     def __init__(self, env):
         super(ElevatorEnvWrapper, self).__init__(env)
         
-        self.orig_subs = None
-        self.orig_H = None
-        self.done = False
         
     def reset(self, seed=None):
         state = self.base_env.reset(seed)
-        self.orig_subs = None
-        self.orig_H = None
-        self.done = False
         return state
     
-    def begin_search(self):
-        self.orig_subs = copy.deepcopy(self.base_env.sampler.subs)
-        self.orig_H = copy.deepcopy(self.base_env.currentH)
-        self.done = self.base_env.done
+    def checkpoint(self):
+        orig_subs = copy.deepcopy(self.base_env.sampler.subs)
+        orig_H = copy.deepcopy(self.base_env.currentH)
+        done = self.base_env.done
         
-    def end_search(self):
-        # reset the environment to the state before the search
-        self.base_env.sampler.reset(copy.deepcopy(self.orig_subs))
-        self.base_env.currentH = copy.deepcopy(self.orig_H)
-        self.done = self.base_env.done                
+        checkpoint = (orig_subs, orig_H, done)
+        
+        return checkpoint
+        
+    def restore_checkpoint(self, checkpoint):
+        orig_subs, orig_H, done = checkpoint
+        
+        self.base_env.sampler.subs = orig_subs
+        self.base_env.currentH = orig_H
+        self.base_env.done = done           
         
     def step(self, action):
         action = self.map_action(action)
@@ -155,3 +155,10 @@ def env_state_2_rddl_state(env_state):
         rddl_state[feature_type] = feature_list            
         
     return rddl_state
+
+def softmax(a, T=1):
+    a = np.array(a) / T
+    exp_a = np.exp(a)
+    sum_exp_a = np.sum(exp_a)
+    y = exp_a / sum_exp_a
+    return y

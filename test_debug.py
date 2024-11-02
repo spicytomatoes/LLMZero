@@ -6,9 +6,18 @@ from agents.expert_policy import ExpertPolicyAgent
 import copy
 
 env = make_elevator_env(env_instance=5)
-#agent = ElvatorLLMPolicyAgent(device="cuda", debug=True)
-#agent = MCTSAgent(env, use_llm=False, debug=True)
-agent = ExpertPolicyAgent()
+llm_agent = ElvatorLLMPolicyAgent(device="cuda", debug=True, temp=10)
+# agent = ExpertPolicyAgent()
+mcts_args = {
+            "num_simulations": 20,
+            "c_puct": 1000,    #should be proportional to the scale of the rewards 
+            "gamma": 0.95,
+            "max_depth": 30,
+            "num_rollouts": 1,
+            "backprop_T": 10,
+        }
+agent = MCTSAgent(env, policy=llm_agent, debug=True, args=mcts_args)
+# agent = MCTSAgent(env, policy=ExpertPolicyAgent(), debug=True, args=mcts_args)
 
 state = env.reset()
 

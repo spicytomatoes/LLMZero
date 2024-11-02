@@ -10,7 +10,7 @@ import argparse
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
-    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert)")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert, mcts-expert, mcts-llm)")
     return parser.parse_args()
 
 args = parse_args()
@@ -23,15 +23,33 @@ if args.agent == "llm":
 elif args.agent == "random":
     agent = RandomAgent()
 elif args.agent == "mcts":
-    agent = MCTSAgent(env, use_llm=False, debug=False)
+    agent = MCTSAgent(env, policy=None, debug=False)
 elif args.agent == "expert":
     agent = ExpertPolicyAgent()
+elif args.agent == "mcts-expert":
+    mcts_args = {
+            "num_simulations": 100,
+            "c_puct": 100,    #should be proportional to the scale of the rewards
+            "gamma": 0.99,
+            "max_depth": 24,
+        }
+    agent = MCTSAgent(env, policy=ExpertPolicyAgent(), debug=False, args=mcts_args)
+elif args.agent == "mcts-llm":
+    llm_agent = ElvatorLLMPolicyAgent(device="cuda", debug=True, temp=10)
+    mcts_args = {
+            "num_simulations": 100,
+            "c_puct": 500,    #should be proportional to the scale of the rewards
+            "gamma": 0.95,
+            "max_depth": 24,
+        }
+    agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
+
 else:
     raise ValueError("Invalid agent")
 
 state = env.reset()
 
-num_episodes_to_run = 10
+num_episodes_to_run = 1
 rewards = []
 
 pbar = tqdm(range(num_episodes_to_run))

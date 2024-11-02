@@ -1,5 +1,5 @@
 import numpy as np
-from utils import DictToObject
+from utils import DictToObject, softmax
 import tqdm
 import json
 
@@ -38,30 +38,32 @@ class ActionNode:
         self.parent = parent # link back to previous state node
         self.N = 0 # number of times this action node has been visited
         self.Q = 0 # average reward of this action node
-        # self.Rs = [] # list of rewards received from this action node
+        self.Rs = [] # list of rewards received from this action node
         self.children = {}  # dictionary of next state nodes id: StateNode
         
 class MCTSAgent:
     def __init__(self,
                  env,
-                 use_llm=False,
+                 policy=None,
                  args=None,
                  debug=False):
         '''
         env: pyRDDLGym environment object, must be discrete action space
-        use_llm: bool, whether to use LLM policy to guide the search
+        policy: object, policy to use for selecting actions
         args: dict, additional arguments to override default values
         '''
         
         self.env = env
         self.valid_actions = env.get_valid_actions()
-        self.use_llm = use_llm
+        self.policy = policy
         
         self.args = {
             "num_simulations": 1000,
-            "c_puct": 100,    #should be proportional to the scale of the rewards
-            "gamma": 0.99,
-            "max_depth": 20,
+            "c_puct": 500,    #should be proportional to the scale of the rewards
+            "gamma": 0.95,
+            "max_depth": 30,
+            "num_rollouts": 1,
+            "backprop_T": 10,
         }
         
         if args is not None:
@@ -79,9 +81,9 @@ class MCTSAgent:
         root = self.build_state(state)
         
         for _ in tqdm.tqdm(range(self.args.num_simulations)):
-            self.env.begin_search()
+            checkpoint = self.env.checkpoint()
             self.simulate(root)
-            self.env.end_search()
+            self.env.restore_checkpoint(checkpoint)
             
         best_action = self.select_action_node_greedily(root).action
         
@@ -116,14 +118,25 @@ class MCTSAgent:
                 depth += 1
                 
         # Step 3: Rollout, simulate the rest of the trajectory using a random policy
-        rollout_reward = 0
-        rollout_depth = 0
-        while not done and depth < self.args.max_depth:
-            action = np.random.choice(self.valid_actions)
-            obs, reward, done, _ = self.env.step(action)
-            depth += 1
-            rollout_depth += 1
-            rollout_reward += reward * self.args.gamma ** rollout_depth
+        rollout_rewards = []
+        
+        for _ in range(self.args.num_rollouts):
+            checkpoint = self.env.checkpoint()
+            rollout_reward = 0
+            rollout_depth = 0
+            tmp_depth = depth
+            
+            while not done and tmp_depth < self.args.max_depth:
+                action = np.random.choice(self.valid_actions)
+                obs, reward, done, _ = self.env.step(action)
+                tmp_depth += 1
+                rollout_depth += 1
+                rollout_reward += reward * self.args.gamma ** rollout_depth
+                
+            rollout_rewards.append(rollout_reward)
+            self.env.restore_checkpoint(checkpoint)
+            
+        rollout_reward = np.mean(rollout_rewards)
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
@@ -131,7 +144,10 @@ class MCTSAgent:
         
         while current_action_node is not None:
             current_action_node.N += 1
-            current_action_node.Q += (cumulative_reward - current_action_node.Q) / current_action_node.N
+            # current_action_node.Q += (cumulative_reward - current_action_node.Q) / current_action_node.N
+            current_action_node.Rs.append(cumulative_reward)
+            # softmax to prioritize actions with higher rewards
+            best_action_node.Q = np.sum(np.array(best_action_node.Rs) * softmax(best_action_node.Rs, T=self.args.backprop_T))
             current_state_node = current_action_node.parent
             current_state_node.N += 1
             cumulative_reward = current_state_node.reward + self.args.gamma * cumulative_reward
@@ -143,9 +159,14 @@ class MCTSAgent:
     def build_state(self, state, reward=0, done=False, parent=None):
         
         state_node = StateNode(state, self.valid_actions, reward, done, parent)
-        if self.use_llm:
-            #suppose to set the children probs based on the LLM policy
-            raise NotImplementedError("LLM policy not implemented yet")  
+        if self.policy is not None:
+            distribution = self.policy.get_action_distribution(state)
+            if isinstance(distribution, dict):
+                distribution = list(distribution.values())
+            state_node.children_probs = distribution
+            # if self.debug:
+            #     # print(f"State: {state}")
+            #     print(f"Action distribution: {distribution}")
         
         return state_node
         
@@ -158,6 +179,7 @@ class MCTSAgent:
         best_ucb = -np.inf
         best_children = []
         best_children_prob = []
+        EPS = 1e-6
         
         for i in range(len(state_node.children)):
             child = state_node.children[i]
@@ -180,28 +202,37 @@ class MCTSAgent:
                 if child.N > 0:
                     print(f"Action {child.action}: Q = {child.Q}, N = {child.N}, prob = {state_node.children_probs[i]}")
                     
-        best_children_prob = np.array(best_children_prob) / np.sum(best_children_prob)
+        best_children_prob = np.array(best_children_prob) / (np.sum(best_children_prob)+EPS)
         best_action_idx = np.argmax(best_children_prob)
         
         return best_children[best_action_idx]
     
     def select_action_node_greedily(self, state_node):
         '''
-        Select the action with the highest average reward
+        Select the action with the most visits
         '''
         
-        best_reward = -np.inf
-        best_action = None
+        best_children = []
+        best_children_prob = []
+        most_visits = 0
         
-        for child in state_node.children:
+        for i, child in enumerate(state_node.children):
             if self.debug:
                 print(f"Action {child.action}: Q = {child.Q}, N = {child.N}")
             
-            if child.N > 0:
-                reward = child.Q
-                if reward > best_reward:
-                    best_reward = reward
-                    best_action = child
+            if child.N == most_visits:
+                most_visits = child.N
+                best_children.append(child)
+                best_children_prob.append(state_node.children_probs[i] + child.Q)
+            if child.N > most_visits:
+                most_visits = child.N
+                best_children = [child]
+                best_children_prob = [state_node.children_probs[i] + child.Q]
+                
+        # in case of ties, return highest Q value + child prob
+        best_children_prob = np.array(best_children_prob)
+        best_child = best_children[np.argmax(best_children_prob)]
+        best_action = best_child
                     
         return best_action
         

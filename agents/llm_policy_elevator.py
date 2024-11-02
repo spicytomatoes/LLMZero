@@ -25,7 +25,7 @@ class ElvatorLLMPolicyAgent:
         self.device = device
         self.llm_model = llm_model
         self.cos_sim_model = SentenceTransformer('paraphrase-MiniLM-L12-v2').to(self.device)
-        self.valid_actions_text = ["move", "open", "close", "nothing"]
+        self.valid_actions_text = ["nothing", "move", "close", "open"]
         
         self.prompt_template = open(prompt_template_path, "r").read()
         
@@ -79,7 +79,7 @@ class ElvatorLLMPolicyAgent:
         
         return action_idx
     
-    def get_action_distribution(self, res):
+    def _get_action_distribution(self, res):
         logprobs_obj = res[0].top_logprobs # list of logprobs info for the first token, .token and .logprob is what we want
         tokens = [x.token for x in logprobs_obj]
         logprobs = [x.logprob for x in logprobs_obj]
@@ -118,7 +118,7 @@ class ElvatorLLMPolicyAgent:
         
         res = self.query_llm(prompt)
         
-        dist = self.get_action_distribution(res)
+        dist = self._get_action_distribution(res)
         
         if greedy:
             action = max(dist, key=dist.get)
@@ -131,6 +131,22 @@ class ElvatorLLMPolicyAgent:
             print(f"Action: {action}")
         
         return action_txt_to_idx(action)
+    
+    def get_action_distribution(self, state):
+        state_txt = state_to_text(state)
+        prompt = self.prompt_template.replace("{current_observation}", state_txt)
+        
+        res = self.query_llm(prompt)
+        
+        dist = self._get_action_distribution(res)
+        
+        #convert to list
+        dist_list = [0.0 for _ in range(4)]
+        
+        for i, action in enumerate(self.valid_actions_text):
+            dist_list[i] = dist[action]
+            
+        return dist_list
     
         
     
