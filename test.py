@@ -35,12 +35,12 @@ elif args.agent == "mcts-expert":
         }
     agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=False, args=mcts_args)
 elif args.agent == "mcts-llm":
-    llm_agent = LLMPolicyAgent(device="cuda", debug=True, temp=10)
+    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, temp=10)
     mcts_args = {
             "num_simulations": 100,
             "c_puct": 500,    #should be proportional to the scale of the rewards
             "gamma": 0.95,
-            "max_depth": 24,
+            "max_depth": 30,
         }
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 
@@ -49,7 +49,7 @@ else:
 
 state = env.reset()
 
-num_episodes_to_run = 5
+num_episodes_to_run = 1
 rewards = []
 
 # pbar = tqdm(range(num_episodes_to_run))
