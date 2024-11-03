@@ -1,63 +1,114 @@
-You are an AI expert in automated planning. Your task is to provide the optimal policy for controlling an elevator system to efficiently transport passengers to their goal floors. The Elevator environment models evening rush hours when people from different floors in a building want to go down to the bottom floor using elevators. The building has 5 floors and 1 elevator. Each floor can accommodate a maximum of 3 people waiting, while the elevator can carry up to 10 passengers. The objective is to pick up passengers from various floors and deliver them to the first floor as efficiently as possible. New passengers may arrive at each floor while the elevator is in operation. The elevator can move up and down, and pick up and drop off passengers. However, it can only do so when the door is open, and it can only move when the door is closed. The elevator must keep moving in the same direction unless: 1. It is at the top or bottom floor, in this case, it will change direction. 2. It opens the door at any floor, which will force it to move down.
-Notice that when there are no people waiting, it is more advantageous for the elevator to be near the top because all passengers are travelling downwards.
-There are 4 available actions: move, open door, close door, nothing.
-The action "nothing" stands for no operation, which may be advantageous if you foresee someone coming to the current floor.
+Determine the optimal action for the elevator system in a given state, based on the provided conditions and constraints to efficiently transport passengers.
 
-You need to generate the next best move given the current state. You need to strictly follow the format in the following examples:
-State:
-There are 1 person waiting at floor 2.
-Elevator at floor 1.
-There are 0 people in the elevator.
-Elevator is moving up.
-Elevator door is closed.
-Next action:
-move
+Consider the following critical factors:
+- The elevator's current direction.
+- Number of people on each floor waiting to be picked up.
+- Number of people currently in the elevator and the elevator capacity.
+- Whether the door is open or closed.
+- The main goal: efficiently transport as many passengers as possible from floors 2 to 5 to the first floor.
 
-State:
-There are 1 person waiting at floor 3.
-Elevator at floor 1.
-There are 0 people in the elevator.
-Elevator is moving up.
-Elevator door is closed.
-Next action:
-move
+The environment's goal is to move passengers from floors 2 to 5 to the first floor as quickly as possible.
 
-State:
-There are 2 person waiting at floor 2, 1 person waiting at floor 3.
-Elevator at floor 3.
-There are 0 people in the elevator.
-Elevator is moving up.
-Elevator door is closed.
-Next action:
-open door
+Follow these details to make decisions:
 
-State:
-There are 2 person waiting at floor 2, 1 person waiting at floor 3.
-Elevator at floor 3.
-There are 0 people in the elevator.
-Elevator is moving down.
-Elevator door is open.
-Next action:
-close door
+- **Goal**: Maximize the number of passengers transported from floors 2-5 to the first floor.
+- **Elevator Rules**:
+  - Can only pick up passengers if the door is open.
+  - Only moves between floors if the door is closed.
+  - Can change direction only when at the top or bottom floor or when picking up passengers while moving up.
+  - Picks up additional passengers while moving down if space is available.
 
-State:
-There are 2 person waiting at floor 2.
-Elevator at floor 2.
-There are 1 people in the elevator.
-Elevator is moving down.
-Elevator door is closed.
-Next action:
-move
+# Steps
 
-State:
-There are 2 person waiting at floor 2.
-Elevator at floor 1.
-There are 1 people in the elevator.
-Elevator is moving down.
-Elevator door is closed.
-Next action:
-open door
+1. **Assess the Current State**:
+   - Check if the elevator is moving up or down.
+   - Determine if the door is open or closed.
+   - Evaluate the number of passengers on each floor and the number in the elevator.
 
-Now, generate the next action for the state below, generate the next action only:
-{current_observation}
-Next action:
+2. **Determine Valid Actions**:
+   - Analyze the possible actions based on the state, such as moving, opening/closing the door, or waiting.
+   
+3. **Decide on Optimal Action**:
+   - Base the decision on efficiency toward reaching the goal of ferrying passengers from upper floors to the first floor.
+   - Consider maximizing elevator capacity usage while following the movement and direction rules.
+
+# Output Format
+
+Provide the optimal action in the following format, given the current state of the elevator:
+
+```plaintext
+Optimal action: [action]
+```
+
+Where the action is one of:
+- `nothing`
+- `move`
+- `open door`
+- `close door`
+
+# Examples
+
+**Example 1**  
+**State**:  
+People waiting at floor 2: 0  
+People waiting at floor 3: 0  
+People waiting at floor 4: 1  
+People waiting at floor 5: 0  
+Elevator at floor 2.  
+There are 0 people in the elevator.  
+Elevator is moving down.  
+Elevator door is open.  
+
+**Reasoning**:  
+- The goal is to pick up passengers if possible to maximize efficiency.
+- Since there is no one waiting on floor 2, the optimal action is to `close door` to proceed with movement.
+
+**Output**:  
+```plaintext
+Optimal action: close door
+```
+
+**Example 2**  
+**State**:  
+People waiting at floor 2: 0  
+People waiting at floor 3: 3  
+People waiting at floor 4: 0  
+People waiting at floor 5: 2  
+Elevator at floor 5.  
+There are 3 people in the elevator.  
+Elevator is moving down.  
+Elevator door is closed.  
+
+**Reasoning**:  
+- The elevator is at the top floor and moving down, and since the door is closed, the optimal action is to `open door` to pick up more passengers.
+
+**Output**:  
+```plaintext
+Optimal action: open door
+```  
+
+**Example 3**  
+**State**:  
+People waiting at floor 2: 0  
+People waiting at floor 3: 3 
+People waiting at floor 4: 0  
+People waiting at floor 5: 1  
+Elevator at floor 3.  
+There are 0 people in the elevator.  
+Elevator is moving up.  
+Elevator door is closed.  
+
+**Reasoning**:  
+- The elevator is at floor 3 and is moving up. There 3 people waiting at floor 3 and 1 people waiting at floor 5. The optimal strategy is to move up to pick up the passenger at floor 5 first and the pick up the passenger at floor 3 later on the way down.
+
+**Output**:  
+```plaintext
+Optimal action: move
+```  
+
+# Notes
+
+- Always prioritize picking up passengers on the higher floors if there is space in the elevator to improve round trip efficiency.
+- Ensure that the elevator adheres to direction rules: it can only change direction at the top or bottom floor or when picking passengers up while moving up.
+- Movement is prohibited if the door is open, focus on closing it before initiating movement.
+- It is more advantageous for the elevator to be at the higher floors in general to be ready to pick up passengers.

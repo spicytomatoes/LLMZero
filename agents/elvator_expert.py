@@ -10,7 +10,7 @@ class CustomElevatorState:
         
         self.valid_actions = [0, 1, 2, 3]   # 0: nothing, 1: move, 2: close door, 3: open door
 
-class ExpertPolicyAgent:
+class ElevatorExpertPolicyAgent:
     def __init__(self, strategy='greedy', num_floors=5, elevator_capacity=10):
         self.strategy = strategy
         self.num_floors = num_floors
