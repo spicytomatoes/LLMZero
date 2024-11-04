@@ -1,3 +1,5 @@
 __pycache__/
 playground.ipynb
 .env
+.pt
+train/tensor_data/expert_state_action_pairs.pt

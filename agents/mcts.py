@@ -21,12 +21,15 @@ class StateNode:
         
     def get_unique_id(self):
         #convert state to a unique string
-        data = {key: (value.tolist() if isinstance(value, np.ndarray) 
-                      else int(value) if isinstance(value, np.integer) 
-                      else float(value) if isinstance(value, np.floating) 
-                      else bool(value) if isinstance(value, np.bool_)
-                        else value)
-        for key, value in self.state.items()}
+        if isinstance(self.state, dict):
+            data = {key: (value.tolist() if isinstance(value, np.ndarray) 
+                        else int(value) if isinstance(value, np.integer) 
+                        else float(value) if isinstance(value, np.floating) 
+                        else bool(value) if isinstance(value, np.bool_)
+                            else value)
+            for key, value in self.state.items()}
+        else:
+            data = self.state.tolist() if isinstance(self.state, np.ndarray) else self.state
         return json.dumps(data)
 
 class ActionNode:
@@ -58,12 +61,12 @@ class MCTSAgent:
         self.policy = policy
         
         self.args = {
-            "num_simulations": 1000,
-            "c_puct": 500,    #should be proportional to the scale of the rewards
+            "num_simulations": 100,
+            "c_puct": 500,    #should be proportional to the scale of the rewards 
             "gamma": 0.95,
-            "max_depth": 30,
-            "num_rollouts": 1,
-            "backprop_T": 10,
+            "max_depth": 100,
+            "num_rollouts": 10,
+            "backprop_T": 50,
         }
         
         if args is not None:
@@ -102,7 +105,7 @@ class MCTSAgent:
         while not current_state_node.done and depth < self.args.max_depth:
             
             best_action_node = self.select_action_node(state_node)
-            obs, reward, done, _ = self.env.step(best_action_node.action)
+            obs, reward, done, _, _ = self.env.step(best_action_node.action)
             
             reward = reward * self.args.gamma
             next_state_node = self.build_state(obs, reward, done, current_state_node)
@@ -128,7 +131,7 @@ class MCTSAgent:
             
             while not done and tmp_depth < self.args.max_depth:
                 action = np.random.choice(self.valid_actions)
-                obs, reward, done, _ = self.env.step(action)
+                obs, reward, done, _, _ = self.env.step(action)
                 tmp_depth += 1
                 rollout_depth += 1
                 rollout_reward += reward * self.args.gamma ** rollout_depth

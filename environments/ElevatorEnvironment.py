@@ -2,6 +2,7 @@ import gym
 from pyRDDLGym.Elevator import Elevator
 from pyRDDLGym.Core.ErrorHandling.RDDLException import RDDLInvalidNumberOfArgumentsError
 import copy
+import numpy as np
 
 class ElevatorEnvironment(gym.Wrapper):
     '''
@@ -13,7 +14,7 @@ class ElevatorEnvironment(gym.Wrapper):
         
     def reset(self, seed=None):
         state = self.base_env.reset(seed)
-        return state
+        return state, {}
     
     def checkpoint(self):
         '''
@@ -41,7 +42,7 @@ class ElevatorEnvironment(gym.Wrapper):
         action = self.map_action(action)
         cont_action = self.disc2action(action)
         next_state, reward, done, info = self.base_env.step(cont_action)
-        return next_state, reward, done, info
+        return next_state, reward, done, False, info
     
     def get_valid_actions(self, state=None):
         return range(4) # 0: nothing, 1: move, 2: close door, 3: open door
@@ -116,3 +117,68 @@ class ElevatorEnvironment(gym.Wrapper):
             return 5
         else:
             raise ValueError(f"Invalid action {action}")
+        
+    @staticmethod
+    def state_to_text_vectorized(state_dict):
+        # Determine the number of states (N) from one of the arrays in state_dict
+        N = next(iter(state_dict.values())).shape[0]
+
+        num_person_waiting = np.zeros((N, 5), dtype=int)
+        num_in_elevator = np.zeros(N, dtype=int)
+        door_state = np.empty(N, dtype=object)
+        direction = np.empty(N, dtype=object)
+        current_floor = np.zeros(N, dtype=int)
+
+        for feature, value_array in state_dict.items():
+            if "num-person-waiting" in feature:
+                # Extract the floor index from the feature name
+                index = int(feature.split("num-person-waiting")[-1])
+                num_person_waiting[:, index] = value_array
+            elif "elevator-at-floor" in feature:
+                index = int(feature.split("elevator-at-floor")[-1])
+                mask = value_array.astype(bool)
+                current_floor[mask] = index + 1
+            elif feature == "elevator-dir-up___e0":
+                direction[value_array.astype(bool)] = "up"
+                direction[~value_array.astype(bool)] = "down"
+            elif feature == "elevator-closed___e0":
+                door_state[value_array.astype(bool)] = "closed"
+                door_state[~value_array.astype(bool)] = "open"
+            elif feature == "num-person-in-elevator___e0":
+                num_in_elevator = value_array
+
+        # Prepare lines for each floor
+        line_arrays = []
+        for i in range(2, 6):
+            floor = i
+            num_waiting = num_person_waiting[:, i - 1].astype(str)
+            line_i = np.char.add(f"People waiting at floor {floor}: ", num_waiting)
+            line_arrays.append(line_i)
+
+        # Prepare other lines
+        line_elevator_at_floor = np.char.add("Elevator at floor ", current_floor.astype(str))
+        line_elevator_at_floor = np.char.add(line_elevator_at_floor, ".")
+        line_num_in_elevator = np.char.add("There are ", num_in_elevator.astype(str))
+        line_num_in_elevator = np.char.add(line_num_in_elevator, " people in the elevator.")
+        line_direction = np.char.add("Elevator is moving ", direction)
+        line_direction = np.char.add(line_direction, ".")
+        line_door_state = np.char.add("Elevator door is ", door_state)
+        line_door_state = np.char.add(line_door_state, ".")
+
+        # Combine all lines
+        line_arrays.extend([
+            line_elevator_at_floor,
+            line_num_in_elevator,
+            line_direction,
+            line_door_state
+        ])
+
+        # Stack and transpose to get lines per state
+        lines_per_state = np.vstack(line_arrays).T
+
+        # Join lines for each state
+        state_texts = np.array(['\n'.join(lines) for lines in lines_per_state])
+
+        return state_texts
+    
+    

@@ -4,7 +4,7 @@ import numpy as np
 env = ElevatorEnvironment()
     
 # interactive, wait for user input
-state = env.reset()
+state, _ = env.reset()
 
 num_steps = 0
 
@@ -17,7 +17,7 @@ while True:
     
     action = int(input("Enter action: "))
     print(f"Action: {env.action_to_text(action)}")
-    next_state, reward, done, info = env.step(action)
+    next_state, reward, done, _, info = env.step(action)
     print("Next state:")
     print(next_state)
     print(env.state_to_text(next_state))
