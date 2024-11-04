@@ -1,19 +1,5 @@
-# Elevator
 tqdm
 dotenv
 transformers==4.46.1
 sentence-transformers==3.2.1
 openai
-
-# Alfworld
-ai2thor==2.1.0
-opencv-python
-pandas
-textworld[pddl]>=1.6.1
-torch
-torchvision
-werkzeug==2.0.3
-
-h5py
-pycocotools
-visdom
