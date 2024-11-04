@@ -1,0 +1,3 @@
+[submodule "environments/alfworld"]
+	path = environments/alfworld
+	url = https://github.com/alfworld/alfworld.git
