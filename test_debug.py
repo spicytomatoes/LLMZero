@@ -2,7 +2,7 @@ import numpy as np
 from agents.llm_policy import LLMPolicyAgent
 from agents.mcts import MCTSAgent
 from agents.elvator_expert import ElevatorExpertPolicyAgent
-from environments.elevator.ElevatorEnvironment import ElevatorEnvironment
+from environments.ElevatorEnvironment import ElevatorEnvironment
 
 env = ElevatorEnvironment()
 agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1)

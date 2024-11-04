@@ -4,7 +4,7 @@ from agents.llm_policy import LLMPolicyAgent
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
 from agents.elvator_expert import ElevatorExpertPolicyAgent
-from environments.elevator.ElevatorEnvironment import ElevatorEnvironment
+from environments.ElevatorEnvironment import ElevatorEnvironment
 from tqdm import tqdm
 import argparse
 

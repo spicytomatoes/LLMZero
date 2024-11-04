@@ -1,4 +1,4 @@
-from environments.elevator.ElevatorEnvironment import ElevatorEnvironment 
+from environments.ElevatorEnvironment import ElevatorEnvironment 
 import numpy as np
 
 env = ElevatorEnvironment()
