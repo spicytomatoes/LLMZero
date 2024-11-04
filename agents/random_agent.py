@@ -2,8 +2,9 @@ import numpy as np
 import random
 
 class RandomAgent:
-    def __init__(self):
-        self.valid_actions = [0, 1, 2, 3]   # 0: nothing, 1: move, 2: close door, 3: open door
+    def __init__(self, env):
+        self.env = env
+        self.valid_actions = env.get_valid_actions()
         
     def act(self, state):
         return random.choice(self.valid_actions)

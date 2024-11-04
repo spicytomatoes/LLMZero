@@ -2,3 +2,5 @@
 playground.ipynb
 .env
 venv/
+.pt
+train/tensor_data/expert_state_action_pairs.pt

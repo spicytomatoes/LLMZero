@@ -1,6 +1,7 @@
 import os
 import numpy as np
-import torch
+import pickle
+import datetime
 import random
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import util as st_utils
@@ -22,6 +23,9 @@ class LLMPolicyAgent:
                  llm_model='gpt-4o-mini', 
                  env_params=None,
                  api_params=None,
+                 load_prompt_buffer_path=None,
+                 prompt_buffer_prefix="prompt_buffer/default",
+                 save_buffer_interval=100,
                  debug=False,
                  temp=1.0   #smoothing factor for action distribution
                 ):
@@ -54,6 +58,18 @@ class LLMPolicyAgent:
         self.temp = temp
         
         self.prompt_buffer = {}
+        if load_prompt_buffer_path is not None:
+            #check file exists
+            if os.path.exists(load_prompt_buffer_path):
+                with open(load_prompt_buffer_path, "rb") as f:
+                    print(f"Loading prompt buffer from {load_prompt_buffer_path}")
+                    self.prompt_buffer = pickle.load(f)        
+            else:
+                print(f"Warning: Prompt buffer file {load_prompt_buffer_path} not found. Creating new buffer.")        
+        
+        self.prompt_buffer_save_path = f"{prompt_buffer_prefix}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
+        self.save_buffer_interval = save_buffer_interval
+        self.call_count = 0       
         
         
     def act(self, state, greedy=True):
@@ -70,7 +86,7 @@ class LLMPolicyAgent:
         state_text = self.env.state_to_text(state)
         valid_actions_text = self.env.get_valid_actions_text(state)
         
-        user_prompt = "**State**\n" + state_text
+        user_prompt = "**State**:\n" + state_text
         
         messages, probs = self.query_llm(user_prompt)
         
@@ -144,6 +160,10 @@ class LLMPolicyAgent:
         
         self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
         
+        self.call_count += 1
+        if self.call_count % self.save_buffer_interval == 0:
+            self.save_prompt_buffer(self.prompt_buffer_save_path)
+        
         return return_msgs, choice_probs
         
     def compute_cos_sim(self, txt_list_1, txt_list_2):
@@ -179,6 +199,10 @@ class LLMPolicyAgent:
                 print(f"Warning: No action found in message {message}")
             return "invalid action"
         
+    def save_prompt_buffer(self, path):
+        with open(path, "wb") as f:
+            print(f"Saving prompt buffer to {path}")
+            pickle.dump(self.prompt_buffer, f)
     
     
         

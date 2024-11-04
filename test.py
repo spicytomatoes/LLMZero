@@ -3,53 +3,57 @@ import numpy as np
 from agents.llm_policy import LLMPolicyAgent
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
-from agents.elvator_expert import ElevatorExpertPolicyAgent
+from agents.elevator_expert import ElevatorExpertPolicyAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
+from environments.BlackjackEnvironment import BlackjackEnvironment
 from tqdm import tqdm
 import argparse
+import yaml
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
     parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert, mcts-expert, mcts-llm)")
+    parser.add_argument("--env", type=str, default="elevator", help="Environment to run (elevator, blackjack)")
+    parser.add_argument("--num_episodes", type=int, default=1, help="Number of episodes to run")
     return parser.parse_args()
 
 args = parse_args()
 
-env = ElevatorEnvironment()
+env = None
+
+if args.env == "elevator":
+    env = ElevatorEnvironment()
+    cfg = yaml.safe_load(open("configs/elevator.yaml"))
+    
+elif args.env == "blackjack":
+    env = BlackjackEnvironment()
+    cfg = yaml.safe_load(open("configs/blackjack.yaml"))
+
+
 agent = None
 
 if args.agent == "llm":
-    agent = LLMPolicyAgent(env, device="cuda", debug=False)
+    agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
 elif args.agent == "random":
-    agent = RandomAgent()
+    agent = RandomAgent(env)
 elif args.agent == "mcts":
-    agent = MCTSAgent(env, policy=None, debug=False)
+    agent = MCTSAgent(env, policy=None, debug=True)
 elif args.agent == "expert":
-    agent = ElevatorExpertPolicyAgent()
+    agent = ElevatorExpertPolicyAgent() # TO DO: abstract out the expert policy
 elif args.agent == "mcts-expert":
-    mcts_args = {
-            "num_simulations": 100,
-            "c_puct": 100,    #should be proportional to the scale of the rewards
-            "gamma": 0.99,
-            "max_depth": 24,
-        }
+    mcts_args = cfg["mcts_expert"]["mcts_args"]
     agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=False, args=mcts_args)
 elif args.agent == "mcts-llm":
-    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, temp=10)
-    mcts_args = {
-            "num_simulations": 100,
-            "c_puct": 500,    #should be proportional to the scale of the rewards
-            "gamma": 0.95,
-            "max_depth": 30,
-        }
+    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+    mcts_args = cfg["llm_mcts"]["mcts_args"]
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 
 else:
     raise ValueError("Invalid agent")
 
-state = env.reset()
+state, _ = env.reset()
 
-num_episodes_to_run = 1
+num_episodes_to_run = args.num_episodes
 rewards = []
 
 # pbar = tqdm(range(num_episodes_to_run))
@@ -57,12 +61,12 @@ rewards = []
 for i in range(num_episodes_to_run):
     num_steps = 0
     total_reward = 0
-    state = env.reset()
+    state, _ = env.reset()
     
     while True:
         action = agent.act(state)
         print(action)
-        next_state, reward, done, info = env.step(action)
+        next_state, reward, done, _, info = env.step(action)
         
         total_reward += reward
         

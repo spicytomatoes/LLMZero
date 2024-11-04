@@ -1,24 +1,30 @@
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
 from agents.mcts import MCTSAgent
-from agents.elvator_expert import ElevatorExpertPolicyAgent
+from agents.elevator_expert import ElevatorExpertPolicyAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
+from environments.BlackjackEnvironment import BlackjackEnvironment
 
 env = ElevatorEnvironment()
-agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1)
-# agent = ElevatorExpertPolicyAgent()
-# mcts_args = {
-#             "num_simulations": 20,
-#             "c_puct": 1000,    #should be proportional to the scale of the rewards 
-#             "gamma": 0.95,
-#             "max_depth": 30,
-#             "num_rollouts": 1,
-#             "backprop_T": 10,
+# env = BlackjackEnvironment()
+# env_params = {
+#             "system_prompt_path": "prompts/prompt_blackjack_policy.txt",
+#             "extract_action_regex": r"optimal action: (.*)",
 #         }
+# agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
+# agent = ElevatorExpertPolicyAgent()
+mcts_args = {
+            "num_simulations": 100,
+            "c_puct": 500,    #should be proportional to the scale of the rewards 
+            "gamma": 0.95,
+            "max_depth": 100,
+            "num_rollouts": 10,
+            "backprop_T": 50,
+        }
 # agent = MCTSAgent(env, policy=llm_agent, debug=True, args=mcts_args)
-# agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=True, args=mcts_args)
+agent = MCTSAgent(env, policy=None, debug=True, args=mcts_args)
 
-state = env.reset()
+state, _ = env.reset()
 
 num_steps = 0
 
@@ -27,7 +33,7 @@ while True:
     
     action = agent.act(state)
     
-    state, reward, done, _ = env.step(action)
+    state, reward, done, _, _ = env.step(action)
     
     print(f"action: {env.action_to_text(action)}")
     print(f"state:\n{env.state_to_text(state)}")
