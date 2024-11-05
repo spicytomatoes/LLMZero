@@ -20,11 +20,11 @@ class ElevatorEnvironment(gym.Wrapper):
         '''
         return a checkpoint of the current environment state
         '''
-        orig_subs = copy.deepcopy(self.base_env.sampler.subs)
+        sampler = copy.deepcopy(self.base_env.sampler)
         orig_H = copy.deepcopy(self.base_env.currentH)
         done = self.base_env.done
         
-        checkpoint = (orig_subs, orig_H, done)
+        checkpoint = (sampler, orig_H, done)
         
         return checkpoint
         
@@ -32,9 +32,9 @@ class ElevatorEnvironment(gym.Wrapper):
         '''
         restore the environment to a previous state
         '''
-        orig_subs, orig_H, done = checkpoint
+        sampler, orig_H, done = copy.deepcopy(checkpoint)
         
-        self.base_env.sampler.subs = orig_subs
+        self.base_env.sampler = sampler
         self.base_env.currentH = orig_H
         self.base_env.done = done           
         
@@ -132,11 +132,11 @@ class ElevatorEnvironment(gym.Wrapper):
         for feature, value_array in state_dict.items():
             if "num-person-waiting" in feature:
                 # Extract the floor index from the feature name
-                index = int(feature.split("num-person-waiting")[-1])
+                index = int(feature[-1])
                 num_person_waiting[:, index] = value_array
             elif "elevator-at-floor" in feature:
-                index = int(feature.split("elevator-at-floor")[-1])
-                mask = value_array.astype(bool)
+                index = int(feature[-1]) 
+                mask = value_array.astype(bool) 
                 current_floor[mask] = index + 1
             elif feature == "elevator-dir-up___e0":
                 direction[value_array.astype(bool)] = "up"
@@ -163,7 +163,7 @@ class ElevatorEnvironment(gym.Wrapper):
         line_direction = np.char.add("Elevator is moving ", direction)
         line_direction = np.char.add(line_direction, ".")
         line_door_state = np.char.add("Elevator door is ", door_state)
-        line_door_state = np.char.add(line_door_state, ".")
+        line_door_state = np.char.add(line_door_state, ".\n")
 
         # Combine all lines
         line_arrays.extend([
