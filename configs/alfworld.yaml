@@ -11,6 +11,7 @@ llm_mcts:
     env_params: 
       system_prompt_path: "prompts/prompt_blackjack_policy.txt"
       extract_action_regex: "optimal action: (.*)"
+      user_prompt_path: "prompts/prompt_alfworld_dynamic.txt"
 
   temp: 10.0
 

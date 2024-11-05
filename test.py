@@ -11,6 +11,10 @@ from environments.BlackjackEnvironment import BlackjackEnvironment
 from tqdm import tqdm
 import argparse
 import yaml
+import os
+
+from dotenv import load_dotenv
+load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
@@ -32,6 +36,9 @@ elif args.env == "blackjack":
     cfg = yaml.safe_load(open("configs/blackjack.yaml"))
 
 elif args.env == "alfworld":
+    if os.getenv("ALFWORLD_DATA") is None:
+        raise Exception("Must set path in ALFWORLD_DATA environment variable to use ALFWorld Environment")
+
     env = ALFWorldEnvironment()
     cfg = yaml.safe_load(open("configs/alfworld.yaml"))
 else:
