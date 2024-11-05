@@ -1,6 +1,6 @@
 import numpy as np
 
-from llm_policy import LLMPolicyAgent
+from agents.llm_policy import LLMPolicyAgent
 
 class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
     def __init__(self, 
@@ -37,7 +37,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
     def get_action_distribution(self, state):
         valid_actions_text = self.env.get_valid_actions_text(state)
         
-        user_prompt = self.env.formalt_llm_prompt(self.user_prompt, state)
+        user_prompt = self.env.format_llm_prompt(self.user_prompt, state)
         
         messages, probs = self.query_llm(user_prompt)
         

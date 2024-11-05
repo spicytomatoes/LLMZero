@@ -13,8 +13,8 @@ env = ALFWorldEnvironment()
 env_params = {
             "extract_action_regex": r"optimal action: (.*)",
         }
-agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
-# agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
+# agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
+agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
 # agent = ElevatorExpertPolicyAgent()
 # mcts_args = {
 #             "num_simulations": 100,

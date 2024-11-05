@@ -30,6 +30,7 @@ A statue is usually on display for all to see. It needs a stable surface for it 
 Optimal action: `"go to shelf 1"`
 
 # Notes
+- You can only hold one object.
 - Use common knowledge of where objects are most likely located to determine actions.
 - Do not generate repeated or looped actions. You must interact with objects that are observed. You must generate the defined actions.
 - Output must only be taken from the valid actions and must copy its format precisely.
