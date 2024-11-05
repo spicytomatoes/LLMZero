@@ -4,9 +4,11 @@ from agents.mcts import MCTSAgent
 from agents.elevator_expert import ElevatorExpertPolicyAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from environments.BlackjackEnvironment import BlackjackEnvironment
+from environments.ALFWorldEnvironment import ALFWorldEnvironment
 
 env = ElevatorEnvironment()
 # env = BlackjackEnvironment()
+# env = ALFWorldEnvironment()
 # env_params = {
 #             "system_prompt_path": "prompts/prompt_blackjack_policy.txt",
 #             "extract_action_regex": r"optimal action: (.*)",
