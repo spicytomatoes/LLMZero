@@ -4,8 +4,8 @@ import random
 class RandomAgent:
     def __init__(self, env):
         self.env = env
-        self.valid_actions = env.get_valid_actions()
         
     def act(self, state):
-        return random.choice(self.valid_actions)
+        valid_actions = self.env.get_valid_actions(state)
+        return random.choice(valid_actions)
     
