@@ -44,13 +44,13 @@ class ALFWorldEnvironment(gym.Wrapper):
         '''
         return a checkpoint of the current environment state
         '''
-        raise NotImplementedError()
+        return self.env.batch_env.envs[0].unwrapped.state.copy()
 
     def restore_checkpoint(self, checkpoint):
         '''
         restore the environment to a previous state
         '''
-        raise NotImplementedError()
+        self.env.batch_env.envs[0].unwrapped.state = checkpoint
 
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
