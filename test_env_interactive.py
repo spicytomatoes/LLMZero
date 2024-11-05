@@ -1,9 +1,9 @@
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
-from environments.ElevatorEnvironment import ElevatorEnvironment 
+# from environments.ElevatorEnvironment import ElevatorEnvironment 
 import numpy as np
 
-env = ElevatorEnvironment()
-# env = ALFWorldEnvironment()
+# env = ElevatorEnvironment()
+env = ALFWorldEnvironment()
     
 # interactive, wait for user input
 state, _ = env.reset()

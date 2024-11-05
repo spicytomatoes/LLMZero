@@ -1,11 +1,14 @@
 import gym
 import alfworld.agents.environment as environment
 import yaml
+import re
 
 class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
+    current_goal = None
+
     def __init__(self):
         config = self._load_config()
         env_type = config['env']['type']
@@ -15,8 +18,26 @@ class ALFWorldEnvironment(gym.Wrapper):
         super().__init__(env)
 
     def reset(self):
-        state, infos = self.env.reset() # Can also accept task_file if needed
-        state = self._map_state(state, infos)
+        match = False
+        TOTAL_NUM_RETRIES = 10
+        num_retries = 0
+        while not match and num_retries < TOTAL_NUM_RETRIES:
+            try:
+                state, infos = self.env.reset() # Can also accept task_file if needed
+                state = self._map_state(state, infos)
+
+                find_goal_regex = r"Your task is to:\s+(.*)"
+                match = re.search(find_goal_regex, state['text_state'])
+
+                if match:
+                    self.current_goal = match.group(1)
+                else:
+                    raise Exception("Could not find valid task with goal.")
+            except:
+                if num_retries >= TOTAL_NUM_RETRIES-1:
+                    raise
+                num_retries += 1
+
         return state, infos
 
     def checkpoint(self):
@@ -48,8 +69,14 @@ class ALFWorldEnvironment(gym.Wrapper):
     def action_to_text(self, action):
         return action # Action already in text
     
-    def action_txt_to_idx(self, action_txt, valid_actions):
-        return valid_actions.index(action_txt)
+    def action_txt_to_idx(self, action_txt, valid_actions_txt):
+        return valid_actions_txt.index(action_txt)
+    
+    def format_llm_prompt(self, prompt: str, state):
+        state_text = self.state_to_text(state)
+        valid_actions_text = ', '.join(self.get_valid_actions_text(state))
+        prompt = prompt.replace('[STATE]', state_text).replace('[ACTIONS]', valid_actions_text).replace('[GOAL]', self.current_goal)
+        return prompt
     
     def _load_config(self):
         CONFIG_FILE_PATH = 'configs/alfworld_env.yaml'
