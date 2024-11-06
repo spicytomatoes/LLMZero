@@ -57,7 +57,6 @@ class MCTSAgent:
         '''
         
         self.env = env
-        self.valid_actions = env.get_valid_actions()
         self.policy = policy
         
         self.args = {
@@ -129,8 +128,10 @@ class MCTSAgent:
             rollout_depth = 0
             tmp_depth = depth
             
+            obs = current_state_node.state
             while not done and tmp_depth < self.args.max_depth:
-                action = np.random.choice(self.valid_actions)
+                valid_actions = self.env.get_valid_actions(obs)
+                action = np.random.choice(valid_actions)
                 obs, reward, done, _, _ = self.env.step(action)
                 tmp_depth += 1
                 rollout_depth += 1
@@ -160,8 +161,8 @@ class MCTSAgent:
             
             
     def build_state(self, state, reward=0, done=False, parent=None):
-        
-        state_node = StateNode(state, self.valid_actions, reward, done, parent)
+        valid_actions = self.env.get_valid_actions(state)
+        state_node = StateNode(state, valid_actions, reward, done, parent)
         if self.policy is not None:
             distribution = self.policy.get_action_distribution(state)
             if isinstance(distribution, dict):
