@@ -1,17 +1,21 @@
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
+from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from agents.mcts import MCTSAgent
 from agents.elevator_expert import ElevatorExpertPolicyAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from environments.BlackjackEnvironment import BlackjackEnvironment
+from environments.ALFWorldEnvironment import ALFWorldEnvironment
 
 env = ElevatorEnvironment()
 # env = BlackjackEnvironment()
-# env_params = {
-#             "system_prompt_path": "prompts/prompt_blackjack_policy.txt",
-#             "extract_action_regex": r"optimal action: (.*)",
-#         }
+# env = ALFWorldEnvironment()
+env_params = {
+            "system_prompt_path": "prompts/prompt_elevator_policy.txt",
+            "extract_action_regex": r"optimal action: (.*)",
+        }
 # agent = LLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
+# agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=True, temp=1.0, env_params=env_params)
 # agent = ElevatorExpertPolicyAgent()
 mcts_args = {
             "num_simulations": 100,

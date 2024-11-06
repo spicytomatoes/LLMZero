@@ -1,7 +1,9 @@
-from environments.ElevatorEnvironment import ElevatorEnvironment 
+from environments.ALFWorldEnvironment import ALFWorldEnvironment
+# from environments.ElevatorEnvironment import ElevatorEnvironment 
 import numpy as np
 
-env = ElevatorEnvironment()
+# env = ElevatorEnvironment()
+env = ALFWorldEnvironment()
     
 # interactive, wait for user input
 state, _ = env.reset()
@@ -15,7 +17,10 @@ print(env.state_to_text(state))
 while True:
     print(f"---------------------- Step {num_steps} ----------------------")
     
-    action = int(input("Enter action: "))
+    if type(env) == ALFWorldEnvironment:
+        action = input("Enter action: ")
+    else:
+        action = int(input("Enter action: "))
     print(f"Action: {env.action_to_text(action)}")
     next_state, reward, done, _, info = env.step(action)
     print("Next state:")
