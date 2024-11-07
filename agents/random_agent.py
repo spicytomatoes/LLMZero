@@ -1,5 +1,6 @@
 import numpy as np
 import random
+random.seed(42)
 
 class RandomAgent:
     def __init__(self, env):

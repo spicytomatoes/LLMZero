@@ -15,6 +15,7 @@ import os
 
 from dotenv import load_dotenv
 load_dotenv()
+np.random.seed(42)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
@@ -71,7 +72,7 @@ elif args.agent == "mcts-llm":
 else:
     raise ValueError("Invalid agent")
 
-state, _ = env.reset()
+state, _ = env.reset(42)
 
 num_episodes_to_run = args.num_episodes
 rewards = []
@@ -81,7 +82,7 @@ rewards = []
 for i in range(num_episodes_to_run):
     num_steps = 0
     total_reward = 0
-    state, _ = env.reset()
+    state, _ = env.reset(42)
     
     while True:
         action = agent.act(state)

@@ -3,6 +3,8 @@ from utils import DictToObject, softmax
 import tqdm
 import json
 
+np.random.seed(42)
+
 class StateNode:
     def __init__(self, state, valid_actions, reward = 0, done = False, parent=None):
         self.state = state
@@ -60,12 +62,12 @@ class MCTSAgent:
         self.policy = policy
         
         self.args = {
-            "num_simulations": 100,
-            "c_puct": 500,    #should be proportional to the scale of the rewards 
+            "num_simulations": 1000,
+            "c_puct": 7,    #should be proportional to the scale of the rewards 
             "gamma": 0.95,
-            "max_depth": 100,
+            "max_depth": 75,
             "num_rollouts": 10,
-            "backprop_T": 50,
+            "backprop_T": 40,
         }
         
         if args is not None:

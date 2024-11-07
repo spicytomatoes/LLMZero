@@ -3,13 +3,16 @@ from pyRDDLGym.Elevator import Elevator
 from pyRDDLGym.Core.ErrorHandling.RDDLException import RDDLInvalidNumberOfArgumentsError
 import copy
 import numpy as np
-
+np.random.seed(42)
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "true"
 class ElevatorEnvironment(gym.Wrapper):
     '''
     wrapper for Elevator environment
     '''
     def __init__(self):
         env = Elevator(instance=5)
+        env.reset(42)
         super(ElevatorEnvironment, self).__init__(env)
         
     def reset(self, seed=None):

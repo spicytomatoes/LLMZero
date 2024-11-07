@@ -1,5 +1,6 @@
 import numpy as np
-    
+np.random.seed(42)
+
 class DictToObject:
     def __init__(self, dictionary):
         for key, value in dictionary.items():
