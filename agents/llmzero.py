@@ -10,6 +10,7 @@ from sentence_transformers import util as st_utils
 import os
 import re
 import tqdm
+import time
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -82,7 +83,14 @@ class LLMTransitionModel:
             return self.prompt_buffer[user_prompt]
     
         messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
-        response = client.chat.completions.create(model=self.llm_model, messages=messages)
+        
+        while True:
+            try:
+                response = client.chat.completions.create(model=self.llm_model, messages=messages)
+                break
+            except Exception as e:
+                print(f"Error calling API: {e}, retrying...")
+                time.sleep(1)
         
         # grab the content of the first choice (only one choice is returned)
         response = response.choices[0].message.content

@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 from sentence_transformers import util as st_utils
 import os
 import re
+import time
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -150,7 +151,14 @@ class LLMPolicyAgent:
             
             # # fake a distribution of possible completions
             # Call the API once to get the main response
-            response = client.chat.completions.create(model=self.llm_model, messages=messages)
+            while True:
+                try:
+                    response = client.chat.completions.create(model=self.llm_model, messages=messages)
+                    break
+                except Exception as e:
+                    print(f"Error calling API: {e}, retrying...")
+                    time.sleep(1)
+            
             primary_response = response.choices[0].message.content  # assume single completion per call
             
             # Create a distribution of possible completions
@@ -176,7 +184,14 @@ class LLMPolicyAgent:
             """
             OpenAI API implementation
             """
-            response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
+            while True:
+                try:
+                    response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
+                    break
+                except Exception as e:
+                    print(f"Error calling API: {e}, retrying...")
+                    time.sleep(1)
+                
             # n messages
             return_msgs = [choice.message.content for choice in response.choices]
             # list of logprobs objects
