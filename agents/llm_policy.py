@@ -14,12 +14,14 @@ from openai import OpenAI
 np.random.seed(42)
 
 
-client = OpenAI(
-    base_url="http://127.0.0.1:11434/v1",
-    api_key=os.getenv("OPENAI_API_KEY")
-)
+if os.getenv("USE_OPENAI_LOCAL"):
+    client = OpenAI(
+        base_url="http://127.0.0.1:11434/v1",
+        api_key=os.getenv("OPENAI_API_KEY")
+    )
+else:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# TO DO: abstract out the LLM model and the environment specific code
 class LLMPolicyAgent:
     def __init__(self, 
                  env,
@@ -37,7 +39,8 @@ class LLMPolicyAgent:
         
         self.env = env
         self.device = device
-        self.llm_model = llm_model
+        # self.llm_model = llm_model
+        self.llm_model = 'qwen2.5:32b' if os.getenv("USE_OPENAI_LOCAL") else llm_model
         self.cos_sim_model = SentenceTransformer('paraphrase-MiniLM-L6-v2').to(self.device)
         
         self.env_params = {
@@ -140,64 +143,67 @@ class LLMPolicyAgent:
         
         messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
         
-        # generates n possible completions, n in api_params
-        response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
-        
-        # # fake a distribution of possible completions
-        # Call the API once to get the main response
-        response = client.chat.completions.create(model=self.llm_model, messages=messages)
-        primary_response = response.choices[0].message.content  # assume single completion per call
-        
-        # Create a distribution of possible completions
-        return_msgs = [primary_response] + [f"Optimal action: {i+1}" for i in range(self.api_params["n"] - 1)]
-        logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
+        if os.getenv("USE_OPENAI_LOCAL"):
+            '''
+            local API implementation
+            '''
+            
+            # # fake a distribution of possible completions
+            # Call the API once to get the main response
+            response = client.chat.completions.create(model=self.llm_model, messages=messages)
+            primary_response = response.choices[0].message.content  # assume single completion per call
+            
+            # Create a distribution of possible completions
+            return_msgs = [primary_response] + [f"Optimal action: {i+1}" for i in range(self.api_params["n"] - 1)]
+            logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
 
-        # Apply softmax to logits to get probabilities
-        logits = np.array(logits)
-        choice_probs = np.exp(logits - np.max(logits))  # subtract max for numerical stability
-        choice_probs /= np.sum(choice_probs)  # normalize to get probabilities
+            # Apply softmax to logits to get probabilities
+            logits = np.array(logits)
+            choice_probs = np.exp(logits - np.max(logits))  # subtract max for numerical stability
+            choice_probs /= np.sum(choice_probs)  # normalize to get probabilities
 
-        # Cache the generated responses and probabilities
-        self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
-        self.call_count += 1
+            # Cache the generated responses and probabilities
+            self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
+            self.call_count += 1
 
-        # Save periodically
-        if self.call_count % self.save_buffer_interval == 0:
-            self.save_prompt_buffer(self.prompt_buffer_save_path)
+            # Save periodically
+            if self.call_count % self.save_buffer_interval == 0:
+                self.save_prompt_buffer(self.prompt_buffer_save_path)
 
-        return return_msgs, choice_probs
+            return return_msgs, choice_probs
         
-        """
-        OpenAI API implementation
-        
-        # n messages
-        return_msgs = [choice.message.content for choice in response.choices]
-        # list of logprobs objects
-        choice_logprobs_list = [choice.logprobs.content for choice in response.choices]
+        else:
+            """
+            OpenAI API implementation
+            """
+            # n messages
+            return_msgs = [choice.message.content for choice in response.choices]
+            # list of logprobs objects
+            choice_logprobs_list = [choice.logprobs.content for choice in response.choices]
 
-        # log probabilities of each choice
-        choice_logprobs = np.zeros(len(choice_logprobs_list))   # to be summed and exponentiated
+            # log probabilities of each choice
+            choice_logprobs = np.zeros(len(choice_logprobs_list))   # to be summed and exponentiated
+            
+            for i, logprobs in enumerate(choice_logprobs_list):
+                token_logprobs = [obj.logprob for obj in logprobs]
+                choice_logprobs[i] = np.sum(token_logprobs)
+            
+            # convert to probabilities
+            # subtracting max for numerical stability
+            choice_probs = choice_logprobs - np.max(choice_logprobs)
+            # clip to avoid overflow
+            choice_probs = np.clip(choice_probs, -100, 0)
+            choice_probs = np.exp(choice_probs)
+            choice_probs /= np.sum(choice_probs)
+            
+            self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
+            
+            self.call_count += 1
+            if self.call_count % self.save_buffer_interval == 0:
+                self.save_prompt_buffer(self.prompt_buffer_save_path)
+            
+            return return_msgs, choice_probs
         
-        for i, logprobs in enumerate(choice_logprobs_list):
-            token_logprobs = [obj.logprob for obj in logprobs]
-            choice_logprobs[i] = np.sum(token_logprobs)
-        
-        # convert to probabilities
-        # subtracting max for numerical stability
-        choice_probs = choice_logprobs - np.max(choice_logprobs)
-        # clip to avoid overflow
-        choice_probs = np.clip(choice_probs, -100, 0)
-        choice_probs = np.exp(choice_probs)
-        choice_probs /= np.sum(choice_probs)
-        
-        self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
-        
-        self.call_count += 1
-        if self.call_count % self.save_buffer_interval == 0:
-            self.save_prompt_buffer(self.prompt_buffer_save_path)
-        
-        return return_msgs, choice_probs
-        """
         
     def compute_cos_sim(self, txt_list_1, txt_list_2):
         '''
