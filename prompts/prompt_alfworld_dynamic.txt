@@ -1,3 +1,0 @@
-**Task**: [GOAL]
-**State**: [STATE]
-**Valid Actions**: [ACTIONS]

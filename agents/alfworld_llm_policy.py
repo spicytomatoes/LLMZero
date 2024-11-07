@@ -18,16 +18,11 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
 
         custom_env_params = {
             "system_prompt_path": "prompts/prompt_alfworld_policy.txt",
-            "user_prompt_path": "prompts/prompt_alfworld_dynamic.txt",
         }
         if env_params is not None:
             custom_env_params.update(env_params)
 
         super().__init__(env, device, llm_model, custom_env_params, api_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, debug, temp)
-
-        self.user_prompt = open(self.env_params["user_prompt_path"], "r").read()
-    
-
 
     def act(self, state, greedy=True):
         int_action = super().act(state, greedy)
@@ -35,10 +30,16 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         return text_action
     
     def get_action_distribution(self, state):
+        state_text = self.env.state_to_text(state)
         valid_actions_text = self.env.get_valid_actions_text(state)
-        
-        user_prompt = self.env.format_llm_prompt(self.user_prompt, state)
-        
+        goal_text = self.env.goal_to_text()
+
+        user_prompt = f'''
+        **Task**: {goal_text}
+        **State**: {state_text}
+        **Valid Actions**: {valid_actions_text}
+        '''
+
         messages, probs = self.query_llm(user_prompt)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)

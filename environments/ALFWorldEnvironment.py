@@ -72,12 +72,9 @@ class ALFWorldEnvironment(gym.Wrapper):
     def action_txt_to_idx(self, action_txt, valid_actions_txt):
         return valid_actions_txt.index(action_txt)
     
-    def format_llm_prompt(self, prompt: str, state):
-        state_text = self.state_to_text(state)
-        valid_actions_text = ', '.join(self.get_valid_actions_text(state))
-        prompt = prompt.replace('[STATE]', state_text).replace('[ACTIONS]', valid_actions_text).replace('[GOAL]', self.current_goal)
-        return prompt
-    
+    def goal_to_text(self):
+        return self.current_goal
+
     def _load_config(self):
         CONFIG_FILE_PATH = 'configs/alfworld_env.yaml'
         with open(CONFIG_FILE_PATH) as reader:
