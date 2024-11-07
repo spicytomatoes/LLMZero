@@ -29,3 +29,15 @@ mcts_expert:
     c_puct: 100
     gamma: 0.95
     max_depth: 24
+
+nn_agent:
+  encoder_name: sentence-transformers/all-mpnet-base-v2
+  network_type: actor_critic
+  network_params:
+    num_transformer_layers_shared: 0
+    num_transformer_layers_actor: 1
+    num_transformer_layers_critic: 1
+    fc_hidden_dims: [512, 256]
+    action_space_n: 4
+    device: cuda
+  model_path: weights/elevator_ppo_Iteration_1552.pt

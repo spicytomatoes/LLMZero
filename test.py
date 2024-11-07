@@ -6,9 +6,11 @@ from agents.llm_policy import LLMPolicyAgent
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
 from agents.elevator_expert import ElevatorExpertPolicyAgent
+from agents.nn_agent import NNAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from environments.BlackjackEnvironment import BlackjackEnvironment
 from tqdm import tqdm
+import torch
 import argparse
 import yaml
 import os
@@ -18,8 +20,9 @@ load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
-    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert, mcts-expert, mcts-llm)")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert, mcts-expert, mcts-llm, nn)")
     parser.add_argument("--env", type=str, default="elevator", help="Environment to run (elevator, blackjack, alfworld)")
+    parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument("--num_episodes", type=int, default=1, help="Number of episodes to run")
     return parser.parse_args()
 
@@ -55,7 +58,7 @@ if args.agent == "llm":
     }
     agent = llm_agents[args.env](env, device="cuda", debug=False, **cfg["llm_policy"])
 elif args.agent == "random":
-    agent = RandomAgent(env)
+    agent = RandomAgent(env, seed = args.seed)
 elif args.agent == "mcts":
     agent = MCTSAgent(env, policy=None, debug=True)
 elif args.agent == "expert":
@@ -67,11 +70,14 @@ elif args.agent == "mcts-llm":
     llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
     mcts_args = cfg["llm_mcts"]["mcts_args"]
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
-
+elif args.agent == "nn":
+    agent = NNAgent(env, cfg=cfg["nn_agent"])
 else:
     raise ValueError("Invalid agent")
 
-state, _ = env.reset()
+if args.seed is not None:
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
 
 num_episodes_to_run = args.num_episodes
 rewards = []
@@ -81,7 +87,12 @@ rewards = []
 for i in range(num_episodes_to_run):
     num_steps = 0
     total_reward = 0
-    state, _ = env.reset()
+    
+    if args.seed is not None:
+        seed = args.seed + i
+        state, _ = env.reset(seed=seed)
+    else:
+        state, _ = env.reset()
     
     while True:
         action = agent.act(state)
