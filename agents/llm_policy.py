@@ -14,10 +14,10 @@ from openai import OpenAI
 np.random.seed(42)
 
 
-if os.getenv("USE_OPENAI_LOCAL"):
+if os.getenv("USE_OPENAI_CUSTOM"):
     client = OpenAI(
-        base_url="http://127.0.0.1:11434/v1",
-        api_key=os.getenv("OPENAI_API_KEY")
+        base_url=os.getenv("CUSTOM_BASE_URL"),
+        api_key=os.getenv("CUSTOM_API_KEY")
     )
 else:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -26,8 +26,8 @@ class LLMPolicyAgent:
     def __init__(self, 
                  env,
                  device, 
-                 llm_model='qwen2.5:32b',
-                #  llm_model='gpt-4o-mini', 
+                #  llm_model='qwen2.5:32b',
+                 llm_model='gpt-4o-mini', 
                  env_params=None,
                  api_params=None,
                  load_prompt_buffer_path=None,
@@ -40,7 +40,7 @@ class LLMPolicyAgent:
         self.env = env
         self.device = device
         # self.llm_model = llm_model
-        self.llm_model = 'qwen2.5:32b' if os.getenv("USE_OPENAI_LOCAL") else llm_model
+        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") else llm_model
         self.cos_sim_model = SentenceTransformer('paraphrase-MiniLM-L6-v2').to(self.device)
         
         self.env_params = {
@@ -143,7 +143,7 @@ class LLMPolicyAgent:
         
         messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
         
-        if os.getenv("USE_OPENAI_LOCAL"):
+        if os.getenv("USE_OPENAI_CUSTOM"):
             '''
             local API implementation
             '''
@@ -176,6 +176,7 @@ class LLMPolicyAgent:
             """
             OpenAI API implementation
             """
+            response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
             # n messages
             return_msgs = [choice.message.content for choice in response.choices]
             # list of logprobs objects
