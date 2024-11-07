@@ -112,3 +112,4 @@ Optimal action: move
 - Ensure that the elevator adheres to direction rules: it can only change direction at the top or bottom floor or when picking passengers up while moving up.
 - Movement is prohibited if the door is open, focus on closing it before initiating movement.
 - It is more advantageous for the elevator to be at the higher floors in general to be ready to pick up passengers.
+- Strictly follow the format of the output of the example above. 

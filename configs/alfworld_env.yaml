@@ -39,7 +39,7 @@ mask_rcnn:
 
 general:
   random_seed: 42
-  use_cuda: True                                               # disable this when running on machine without cuda
+  use_cuda: False                                               # disable this when running on machine without cuda
   visdom: False                                                # plot training/eval curves, run with visdom server
   task: 'alfred'
   training_method: 'dqn'                                       # 'dqn' or 'dagger'

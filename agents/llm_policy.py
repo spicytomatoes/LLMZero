@@ -2,7 +2,6 @@ import os
 import numpy as np
 import pickle
 import datetime
-import random
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import util as st_utils
 import os
@@ -12,15 +11,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from openai import OpenAI
+np.random.seed(42)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+client = OpenAI(
+    base_url="http://127.0.0.1:11434/v1",
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
 # TO DO: abstract out the LLM model and the environment specific code
 class LLMPolicyAgent:
     def __init__(self, 
                  env,
                  device, 
-                 llm_model='gpt-4o-mini', 
+                 llm_model='qwen2.5:32b',
+                #  llm_model='gpt-4o-mini', 
                  env_params=None,
                  api_params=None,
                  load_prompt_buffer_path=None,
@@ -124,7 +129,7 @@ class LLMPolicyAgent:
                 action_probs[action_idx] += probs[i]
                 
         action_probs = action_probs ** (1/self.temp)
-        action_probs /= np.sum(action_probs)
+        action_probs /= np.sum(action_probs + 1e-10)
         
         return action_probs
     
@@ -137,6 +142,33 @@ class LLMPolicyAgent:
         
         # generates n possible completions, n in api_params
         response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
+        
+        # # fake a distribution of possible completions
+        # Call the API once to get the main response
+        response = client.chat.completions.create(model=self.llm_model, messages=messages)
+        primary_response = response.choices[0].message.content  # assume single completion per call
+        
+        # Create a distribution of possible completions
+        return_msgs = [primary_response] + [f"Optimal action: {i+1}" for i in range(self.api_params["n"] - 1)]
+        logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
+
+        # Apply softmax to logits to get probabilities
+        logits = np.array(logits)
+        choice_probs = np.exp(logits - np.max(logits))  # subtract max for numerical stability
+        choice_probs /= np.sum(choice_probs)  # normalize to get probabilities
+
+        # Cache the generated responses and probabilities
+        self.prompt_buffer[user_prompt] = (return_msgs, choice_probs)
+        self.call_count += 1
+
+        # Save periodically
+        if self.call_count % self.save_buffer_interval == 0:
+            self.save_prompt_buffer(self.prompt_buffer_save_path)
+
+        return return_msgs, choice_probs
+        
+        """
+        OpenAI API implementation
         
         # n messages
         return_msgs = [choice.message.content for choice in response.choices]
@@ -165,6 +197,7 @@ class LLMPolicyAgent:
             self.save_prompt_buffer(self.prompt_buffer_save_path)
         
         return return_msgs, choice_probs
+        """
         
     def compute_cos_sim(self, txt_list_1, txt_list_2):
         '''

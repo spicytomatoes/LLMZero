@@ -19,6 +19,7 @@ ALFWorldEnvironment = None
 
 from dotenv import load_dotenv
 load_dotenv()
+np.random.seed(42)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
@@ -77,6 +78,7 @@ elif args.agent == "nn":
 else:
     raise ValueError("Invalid agent")
 
+
 if args.seed is not None:
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -89,12 +91,13 @@ rewards = []
 for i in range(num_episodes_to_run):
     num_steps = 0
     total_reward = 0
-    
+
     if args.seed is not None:
         seed = args.seed + i
         state, _ = env.reset(seed=seed)
     else:
         state, _ = env.reset()
+
     
     while True:
         action = agent.act(state)

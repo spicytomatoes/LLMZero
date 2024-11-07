@@ -17,6 +17,9 @@ from alfworld.agents.eval import evaluate_dqn
 from alfworld.agents.modules.generic import HistoryScoreCache, EpisodicCountingMemory, ObjCentricEpisodicMemory
 from alfworld.agents.utils.misc import extract_admissible_commands
 
+np.random.seed(42)
+random.seed(42)
+
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
