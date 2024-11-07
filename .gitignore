@@ -8,3 +8,5 @@ environments/alfworld/
 train/dataset/*
 train/models/*.pt
 train/weights/*.pt
+train/elevator_ppo_stats/*.pkl
+train/replay_buffer/*.pkl
