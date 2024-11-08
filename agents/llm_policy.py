@@ -15,7 +15,7 @@ from openai import OpenAI
 np.random.seed(42)
 
 
-if os.getenv("USE_OPENAI_CUSTOM"):
+if os.getenv("USE_OPENAI_CUSTOM") == "True":
     client = OpenAI(
         base_url=os.getenv("CUSTOM_BASE_URL"),
         api_key=os.getenv("CUSTOM_API_KEY")
@@ -41,7 +41,7 @@ class LLMPolicyAgent:
         self.env = env
         self.device = device
         # self.llm_model = llm_model
-        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") else llm_model
+        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") == "True" else llm_model
         self.cos_sim_model = SentenceTransformer('paraphrase-MiniLM-L6-v2').to(self.device)
         
         self.env_params = {

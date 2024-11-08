@@ -17,7 +17,7 @@ load_dotenv()
 
 from openai import OpenAI
 
-if os.getenv("USE_OPENAI_CUSTOM"):
+if os.getenv("USE_OPENAI_CUSTOM") == "True":
     client = OpenAI(
         base_url=os.getenv("CUSTOM_BASE_URL"),
         api_key=os.getenv("CUSTOM_API_KEY")
@@ -40,7 +40,7 @@ class LLMTransitionModel:
         self.system_prompt = open(self.env_params["system_prompt_path"], "r").read()
         self.extract_state_regex = self.env_params["extract_state_regex"]
         self.extract_regex_fallback = self.env_params["extract_regex_fallback"]
-        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") else llm_model
+        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") == "True" else llm_model
         self.debug = debug
         
         self.prompt_buffer = {}
