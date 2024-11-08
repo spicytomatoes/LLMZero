@@ -10,7 +10,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
                  env_params=None,
                  api_params=None,
                  load_prompt_buffer_path=None,
-                 prompt_buffer_prefix="prompt_buffer/default",
+                 prompt_buffer_prefix="prompt_buffer/alfworld",
                  save_buffer_interval=100,
                  debug=False,
                  temp=1.0   #smoothing factor for action distribution
@@ -77,7 +77,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
                 action_probs[action_idx] += probs[i]
                 
         action_probs = action_probs ** (1/self.temp)
-        action_probs /= np.sum(action_probs)
+        action_probs /= np.sum(action_probs + 1e-10)
         
         return action_probs
     
