@@ -74,9 +74,12 @@ class ALFWorldEnvironment(gym.Wrapper):
         return next_state, curr_reward, done[0], None, infos
 
     def _get_current_reward(self, step_reward, next_state):
+        MAX_NORM_VALUE = 0.2
         new_state_reward = self.episodic_counting_memory.is_a_new_state(next_state)[0] # Between 0 and 1
+        new_state_reward = new_state_reward / MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
         new_object_reward = self.obj_centric_episodic_counting_memory.get_object_novelty_reward(next_state)[0] # Between 0 and 1
-        step_reward = -3 if step_reward == 0 else step_reward # Haven't reached goal: 0 -> -3, Reaching goal: 1
+        new_object_reward = new_object_reward / MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
+        step_reward = -0.03 if step_reward == 0 else step_reward # Haven't reached goal: 0 -> -3, Reaching goal: 1
 
         current_reward = step_reward + new_state_reward + new_object_reward
 
