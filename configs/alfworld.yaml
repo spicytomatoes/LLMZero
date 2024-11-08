@@ -2,16 +2,18 @@ llm_policy:
   env_params: 
     system_prompt_path: "prompts/prompt_alfworld_policy.txt"
     extract_action_regex: "optimal action: (.*)"
-    user_prompt_path: "prompts/prompt_alfworld_dynamic.txt"
+    prompt_buffer_prefix: "prompt_buffer/alfworld"
+    save_buffer_interval: 100
 
   temp: 1.0
 
 llm_mcts:
   llm_policy:
     env_params: 
-      system_prompt_path: "prompts/prompt_blackjack_policy.txt"
+      system_prompt_path: "prompts/prompt_alfworld_policy.txt"
       extract_action_regex: "optimal action: (.*)"
-      user_prompt_path: "prompts/prompt_alfworld_dynamic.txt"
+      prompt_buffer_prefix: "prompt_buffer/alfworld"
+      save_buffer_interval: 100
 
   temp: 10.0
 
