@@ -1,5 +1,5 @@
 from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
-# from environments.ALFWorldEnvironment import ALFWorldEnvironment
+from environments.ALFWorldEnvironment import ALFWorldEnvironment
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
@@ -14,8 +14,6 @@ import torch
 import argparse
 import yaml
 import os
-
-ALFWorldEnvironment = None
 
 from dotenv import load_dotenv
 load_dotenv()

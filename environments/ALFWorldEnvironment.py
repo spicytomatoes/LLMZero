@@ -2,8 +2,11 @@ import gym
 import alfworld.agents.environment as environment
 import yaml
 import re
+import os
 
 from alfworld.agents.modules.generic import EpisodicCountingMemory, ObjCentricEpisodicMemory
+
+FILE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 class ALFWorldEnvironment(gym.Wrapper):
     '''
@@ -104,8 +107,9 @@ class ALFWorldEnvironment(gym.Wrapper):
         return self.current_goal
 
     def _load_config(self):
-        CONFIG_FILE_PATH = 'configs/alfworld_env.yaml'
-        with open(CONFIG_FILE_PATH) as reader:
+        CONFIG_FILE_PATH = '../configs/alfworld_env.yaml'
+        path = os.path.join(FILE_PATH, CONFIG_FILE_PATH)
+        with open(path) as reader:
             config = yaml.safe_load(reader)
         return config
 
@@ -113,5 +117,6 @@ class ALFWorldEnvironment(gym.Wrapper):
         return {
             'text_state': state[0],
             'valid_actions': infos['admissible_commands'][0],
+            'expert_actions': infos['extra.expert_plan'][0],
         }
     
