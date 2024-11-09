@@ -21,6 +21,7 @@ if os.getenv("USE_OPENAI_CUSTOM") == "True":
         api_key=os.getenv("CUSTOM_API_KEY")
     )
 else:
+    print("using chatgpt")
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class LLMPolicyAgent:
@@ -83,12 +84,12 @@ class LLMPolicyAgent:
         
     def act(self, state, greedy=True):
         action_dist = self.get_action_distribution(state)
-        
+        print("action_dist_llm_policy:",action_dist)
         if greedy:
             action = np.argmax(action_dist)
         else:
             action = np.random.choice(len(action_dist), p=action_dist)                
-        
+        print("this is what I give you:",action)
         return action
     
     def get_action_distribution(self, state):
@@ -96,7 +97,7 @@ class LLMPolicyAgent:
         valid_actions_text = self.env.get_valid_actions_text(state)
         
         user_prompt = "**State**:\n" + state_text
-        
+        # print("llm_Model:",self.llm_model)
         messages, probs = self.query_llm(user_prompt)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
@@ -160,7 +161,6 @@ class LLMPolicyAgent:
                     time.sleep(1)
             
             primary_response = response.choices[0].message.content  # assume single completion per call
-            
             # Create a distribution of possible completions
             return_msgs = [primary_response] + [f"Optimal action: {i+1}" for i in range(self.api_params["n"] - 1)]
             logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
@@ -184,6 +184,7 @@ class LLMPolicyAgent:
             """
             OpenAI API implementation
             """
+            print('entering chatgpt prompting')
             while True:
                 try:
                     response = client.chat.completions.create(model=self.llm_model, messages=messages, **self.api_params)
@@ -193,6 +194,7 @@ class LLMPolicyAgent:
                     time.sleep(1)
                 
             # n messages
+            response = client.chat.completions.create(model=self.llm_model, messages=messages,**self.api_params)
             return_msgs = [choice.message.content for choice in response.choices]
             # list of logprobs objects
             choice_logprobs_list = [choice.logprobs.content for choice in response.choices]
@@ -256,16 +258,8 @@ class LLMPolicyAgent:
         
     def save_prompt_buffer(self, path):
         with open(path, "wb") as f:
-            try:
-                print(f"Saving prompt buffer to {path}")
-                pickle.dump(self.prompt_buffer, f)
-            except Exception as e:
-                print(f"Error saving prompt buffer: {e}")
-            
-    def __del__(self):
-        if len(self.prompt_buffer) > 0:
-            self.save_prompt_buffer(self.prompt_buffer_save_path)
-            print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
+            print(f"Saving prompt buffer to {path}")
+            pickle.dump(self.prompt_buffer, f)
     
     
         

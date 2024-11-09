@@ -10,9 +10,14 @@ Generate the next optimal action for completing a given household task using the
 4. **Check the most plausible location**: Move to that location and check if the object is there. 
 5. **Explore**: If none of the locations seem plausible, explore the apartment to see if you can find one.
 
+
 # Output Format
 
-Provide a concise output of a single phrase taken from the list of valid actions provided.
+Provide a single item taken from the list of valid actions provided. Do not give an explanation or included other tokens in your output. Do not include special characters like quotation marks. It should follow the following format:
+
+plaintext
+Optimal action: [action]
+
 
 # Examples
 
@@ -29,9 +34,98 @@ A statue is usually on display for all to see. It needs a stable surface for it 
 **Output**:
 Optimal action: `"go to shelf 1"`
 
+**Example 2**
+**State**:
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+A alarmclock is usually on display. It need a stable surface for it to be placed on. Given what we currently observe, it is most likely located on a shelf, sidetable or drawer. We can choose to go to shelf 1, side table 1 or drawer 1 to find the alarmclock first.
+
+**Output 1**:
+Optimal action: `"go to sidetable 1"`
+
+**State**:
+You arrive at loc 20. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+Take alarmclock 1 from sidetable 1 because, you already find what you are looking for so taking it will lead you toward goal.
+
+**Output 2**:
+Optimal action: `"take alarmclock 1 from sidetable 1"`
+
+**State**:
+You pick up the alarmclock 1 from the sidetable 1.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+you should head to the goal destination because you already acquired the object that you are looking for.
+
+**Output 3**:
+Optimal action: `"go to desk 1"`
+
+**State**:
+You arrive at loc 1. On the desk 1, you see a book 2, a bowl 1, a cd 3, a pencil 2, a pencil 1, and a remotecontrol 1.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+You have reached the destination so you should place that objects down on the place where it should be able to put down.
+
+**Output 4**:
+Optimal action: `"put alarmclock 1 in/on desk 1"`
+
+**Example 3**
+**State**:
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+A alarmclock is usually on display. It need a stable surface for it to be placed on. Given what we currently observe, it is most likely located on a shelf, sidetable or drawer. We can choose to go to shelf 1, side table 1 or drawer 1 to find the alarmclock first.
+
+**Output 1**:
+Optimal action: `"go to sidetable 1"`
+
+**State**:
+You arrive at loc 20. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+lets say that you choose the same action that was done before.
+
+**Output 2**:
+Optimal action: `"go to sidetable 1"`
+
+**State**:
+Nothing happen
+
+**Task**:
+Your task is to: find and put a alarmclock in desk.
+
+**Reasoning**:
+you should do other actions because nothing happen when you repeated the action
+
+**Output 3**:
+Optimal action: `"take alarmclock 1 from sidetable 1"`
+
 # Notes
 - You can only hold one object.
 - Use common knowledge of where objects are most likely located to determine actions.
 - Do not generate repeated or looped actions. You must interact with objects that are observed. You must generate the defined actions.
-- Output must only be taken from the valid actions and must copy its format precisely.
+- Doing the same action twice would not be able to reached the goal.
+- If you can't find the object that you are looking for you should change the location to find that object.
+- If you can't find objects related to the task, and there is no action related to that location like open or close, you should go to other position.
+- If you have visited those location and you can't find the objects related to the task, you should not visited that again.
 

@@ -5,8 +5,10 @@ import alfworld.agents.environment as environment
 import yaml
 import re
 import copy
-
 from alfworld.agents.modules.generic import EpisodicCountingMemory, ObjCentricEpisodicMemory
+import os
+
+FILE_PATH = os.path.abspath(os.path.dirname(__file__))
 
 class ALFWorldEnvironment(gym.Wrapper):
     '''
@@ -102,6 +104,9 @@ class ALFWorldEnvironment(gym.Wrapper):
 
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
+        # self.prev_action = action
+        # print(done)
+        # print("step reward:",reward)
         curr_reward = self._get_current_reward(reward[0], next_state)
         next_state = self._map_state(next_state, infos)
 
@@ -141,10 +146,15 @@ class ALFWorldEnvironment(gym.Wrapper):
     
     def goal_to_text(self):
         return self.current_goal
-
+    # def get_prev_action(self):
+    #     return self.prev_action
+    def get_action_history(self):
+        return self.action_history
+    
     def _load_config(self):
-        CONFIG_FILE_PATH = 'configs/alfworld_env.yaml'
-        with open(CONFIG_FILE_PATH) as reader:
+        CONFIG_FILE_PATH = '../configs/alfworld_env_test.yaml'
+        path = os.path.join(FILE_PATH, CONFIG_FILE_PATH)
+        with open(path) as reader:
             config = yaml.safe_load(reader)
         return config
 
@@ -152,5 +162,6 @@ class ALFWorldEnvironment(gym.Wrapper):
         return {
             'text_state': state[0],
             'valid_actions': infos['admissible_commands'][0],
+            # 'expert_actions': infos['extra.expert_plan'][0],
         }
     

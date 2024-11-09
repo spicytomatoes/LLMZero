@@ -1,5 +1,5 @@
 from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
-# from environments.ALFWorldEnvironment import ALFWorldEnvironment
+from environments.ALFWorldEnvironment import ALFWorldEnvironment
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
@@ -15,7 +15,6 @@ import argparse
 import yaml
 import os
 
-ALFWorldEnvironment = None
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -31,7 +30,6 @@ def parse_args():
 
 args = parse_args()
 
-env = None
 
 if args.env == "elevator":
     env = ElevatorEnvironment()
@@ -70,7 +68,12 @@ elif args.agent == "mcts-expert":
     mcts_args = cfg["mcts_expert"]["mcts_args"]
     agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=False, args=mcts_args)
 elif args.agent == "mcts-llm":
-    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+    llm_agents = {
+        "elevator": LLMPolicyAgent,
+        "blackjack": LLMPolicyAgent,
+        "alfworld": ALFWorldLLMPolicyAgent
+    }
+    llm_agent = llm_agents[args.env](env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
     mcts_args = cfg["llm_mcts"]["mcts_args"]
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 elif args.agent == "nn":
