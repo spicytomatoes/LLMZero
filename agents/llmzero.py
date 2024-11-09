@@ -24,115 +24,8 @@ if os.getenv("USE_OPENAI_CUSTOM") == "True":
     )
 else:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    
-class LLMTransitionModel:
-    def __init__(self, 
-                 env_params,
-                 load_prompt_buffer_path=None,
-                 prompt_buffer_prefix="prompt_buffer/elevator_transition",
-                 save_buffer_interval=10,
-                 llm_model='gpt-4o-mini', 
-                 debug=False):
-        
-        self.env_params = env_params
-        
-            
-        self.system_prompt = open(self.env_params["system_prompt_path"], "r").read()
-        self.extract_state_regex = self.env_params["extract_state_regex"]
-        self.extract_regex_fallback = self.env_params["extract_regex_fallback"]
-        self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") == "True" else llm_model
-        self.debug = debug
-        
-        self.prompt_buffer = {}
-        if load_prompt_buffer_path is not None:
-            #check file exists
-            if os.path.exists(load_prompt_buffer_path):
-                with open(load_prompt_buffer_path, "rb") as f:
-                    print(f"Loading prompt buffer from {load_prompt_buffer_path}")
-                    self.prompt_buffer = pickle.load(f)        
-            else:
-                print(f"Warning: Prompt buffer file {load_prompt_buffer_path} not found. Creating new buffer.")        
-        
-        self.prompt_buffer_save_path = f"{prompt_buffer_prefix}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
-        self.save_buffer_interval = save_buffer_interval
-        self.call_count = 0    
-        
-    def get_next_state(self, state: str, action: str):
-        '''
-        Get the next state given the current state and action
-        '''
-        
-        # construct user prompt
-        user_prompt = "**Current State:**\n"
-        user_prompt += state
-        user_prompt += "\n**Action:**"
-        user_prompt += action + "\n"
-        
-        response = self.query_llm(user_prompt)
-        
-        next_state, status = self.extract_state(response)
-        
-        return next_state, status
-    
-    def query_llm(self, user_prompt):
-        '''
-        Query the LLM with the user prompt
-        '''
-        
-        if user_prompt in self.prompt_buffer:
-            return self.prompt_buffer[user_prompt]
-    
-        messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
-        
-        while True:
-            try:
-                response = client.chat.completions.create(model=self.llm_model, messages=messages)
-                break
-            except Exception as e:
-                print(f"Error calling API: {e}, retrying...")
-                time.sleep(1)
-        
-        # grab the content of the first choice (only one choice is returned)
-        response = response.choices[0].message.content
-        
-        self.prompt_buffer[user_prompt] = response
-        
-        self.call_count += 1
-        
-        if self.call_count % self.save_buffer_interval == 0:
-            with open(self.prompt_buffer_save_path, "wb") as f:
-                print(f"Saving prompt buffer to {self.prompt_buffer_save_path}")
-                pickle.dump(self.prompt_buffer, f)
-        
-        if self.debug:
-            print(f"response:\n {response}")
-        
-        return response
-    
-    def extract_state(self, response: str):
-        '''
-        Extract the next state from the LLM response
-        '''
-        
-        match = re.search(self.extract_state_regex, response, re.DOTALL | re.IGNORECASE)
-        if match is not None:
-            next_state = match.group(1)
-            return next_state, "success"
-        else:
-            if self.debug:
-                print("Warning: No match found, trying fallback regex...")
-            
-            for regex in self.extract_regex_fallback:
-                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
-                if match is not None:
-                    next_state = match.group(1)
-                    return next_state, "success on fallback regex"
-            else:
-                print("Error: No match found with fallback regex, using full response as next state")
-                return response, "error"
-        
-
-class LLMRewardModel: 
+   
+class LLMModel: 
         def __init__(self, 
                  env_params,
                  load_prompt_buffer_path=None,
@@ -140,9 +33,9 @@ class LLMRewardModel:
                  save_buffer_interval=10,
                  llm_model='gpt-4o-mini', 
                  debug=False):
+            
             self.env_params = env_params
             
-                
             self.system_prompt = open(self.env_params["system_prompt_path"], "r").read()
             self.reward_regex = self.env_params["extract_reward_regex"]
             self.reward_regex_fallback = self.env_params["extract_reward_regex_fallback"]
@@ -162,22 +55,6 @@ class LLMRewardModel:
             self.prompt_buffer_save_path = f"{prompt_buffer_prefix}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.pkl"
             self.save_buffer_interval = save_buffer_interval
             self.call_count = 0
-            
-        def get_reward(self, state: str, action: str):
-            '''
-            Get the reward given the current state and action
-            '''
-            
-            # construct user prompt
-            user_prompt = ""
-            user_prompt += state
-            user_prompt += "\nAction: " + action + "\n" # should be one move only
-            
-            response = self.query_llm(user_prompt)
-            
-            reward, status = self.extract_reward(response)
-            
-            return reward, status
         
         def query_llm(self, user_prompt):
             '''
@@ -214,24 +91,117 @@ class LLMRewardModel:
             self.call_count += 1
             
             if self.call_count % self.save_buffer_interval == 0:
-                with open(self.prompt_buffer_save_path, "wb") as f:
-                    print(f"Saving prompt buffer to {self.prompt_buffer_save_path}")
-                    pickle.dump(self.prompt_buffer, f)
+                self.save_prompt_buffer(self.prompt_buffer_save_path)
             
-            # if self.debug:
-            #     print(f"response:\n {response}")
+            if self.debug:
+                print(f"response:\n {response}")
             
             return response
+        
+        def save_prompt_buffer(self, save_path):
+            try:
+                with open(save_path, "wb") as f:
+                    pickle.dump(self.prompt_buffer, f)
+            except Exception as e:
+                print(f"Error saving prompt buffer: {e}")
+        
+        def __del__(self):
+            if len(self.prompt_buffer) > 0:
+                self.save_prompt_buffer(self.prompt_buffer_save_path)
+                print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
+    
+class LLMTransitionModel(LLMModel):
+    def __init__(self, 
+                 env_params,
+                 load_prompt_buffer_path=None,
+                 prompt_buffer_prefix="prompt_buffer/elevator_transition",
+                 save_buffer_interval=10,
+                 llm_model='gpt-4o-mini', 
+                 debug=False):
+        
+        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug) 
+        
+    def get_next_state(self, state: str, action: str):
+        '''
+        Get the next state given the current state and action
+        '''
+        
+        # construct user prompt
+        user_prompt = "**Current State:**\n"
+        user_prompt += state
+        user_prompt += "\n**Action:**"
+        user_prompt += action + "\n"
+        
+        response = self.query_llm(user_prompt)
+        
+        next_state, status = self.extract_state(response)
+        
+        return next_state, status
+    
+    def extract_state(self, response: str):
+        '''
+        Extract the next state from the LLM response
+        '''
+        
+        match = re.search(self.extract_state_regex, response, re.DOTALL | re.IGNORECASE)
+        if match is not None:
+            next_state = match.group(1)
+            return next_state, "success"
+        else:
+            if self.debug:
+                print("Warning: No match found, trying fallback regex...")
+            
+            for regex in self.extract_regex_fallback:
+                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                if match is not None:
+                    next_state = match.group(1)
+                    return next_state, "success on fallback regex"
+            else:
+                print("Error: No match found with fallback regex, using full response as next state")
+                return response, "error"
+        
+
+class LLMRewardModel(LLMModel):
+        def __init__(self, 
+                 env_params,
+                 load_prompt_buffer_path=None,
+                 prompt_buffer_prefix="prompt_buffer/elevator_reward",
+                 save_buffer_interval=10,
+                 llm_model='gpt-4o-mini', 
+                 debug=False):
+            
+            super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
+            
+        def get_reward(self, state: str, action: str):
+            '''
+            Get the reward given the current state and action
+            '''
+            
+            # construct user prompt
+            user_prompt = ""
+            user_prompt += state
+            user_prompt += "\nAction: " + action + "\n" # should be one move only
+            
+            response = self.query_llm(user_prompt)
+            
+            reward, status = self.extract_reward(response)
+            
+            return reward, status
             
         def extract_reward(self, response: str):
             '''
             Extract the reward from the LLM response
             '''
+            def extract_first_float(text):
+                match = re.search(r'\b\d+\.\d+\b', text)
+                if match:
+                    return float(match.group()), "success"
+                return 0, "error"
             
             match = re.search(self.reward_regex, response, re.DOTALL | re.IGNORECASE)
             if match is not None:
                 reward = match.group(1)
-                return reward, "success"
+                return extract_first_float(reward)
             else:
                 if self.debug:
                     print("Warning: No match found, trying fallback regex...")
@@ -240,11 +210,59 @@ class LLMRewardModel:
                     match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
                     if match is not None:
                         reward = match.group(1)
-                        return reward, "success on fallback regex"
+                        return extract_first_float(reward)
                 else:
                     print("Error: No match found with fallback regex, using full response as reward")
                     return response, "error"
                 
+class LLMValueModel(LLMModel):
+    def __init__(self,
+                    env_params,
+                    load_prompt_buffer_path=None,
+                    prompt_buffer_prefix="prompt_buffer/elevator_value",
+                    save_buffer_interval=10,
+                    llm_model='gpt-4o-mini',
+                    debug=False):
+            
+            super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
+            
+    def get_value(self, state: str):
+        '''
+        Get the value of the state
+        '''
+        
+        # construct user prompt
+        user_prompt = "**State:**\n"
+        user_prompt += state
+        
+        response = self.query_llm(user_prompt)
+        
+        value, status = self.extract_value(response)
+        
+        return value, status
+    
+    def extract_value(self, response: str):
+        '''
+        Extract the value from the LLM response
+        '''
+        
+        match = re.search(self.extract_value_regex, response, re.DOTALL | re.IGNORECASE)
+        if match is not None:
+            value = match.group(1)
+            return value, "success"
+        else:
+            if self.debug:
+                print("Warning: No match found, trying fallback regex...")
+            
+            for regex in self.extract_value_regex_fallback:
+                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                if match is not None:
+                    value = match.group(1)
+                    return value, "success on fallback regex"
+            else:
+                print("Error: No match found with fallback regex, using full response as value")
+                return response, "error"
+                 
                 
 class LLMZeroAgent:
     def __init__(self, env, cfg=None, debug=False):
@@ -276,6 +294,20 @@ class LLMZeroAgent:
                     "extract_regex_fallback": [r"next state:(.*)"],
                 },
                 "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
+            },
+            "llm_reward": {
+                "env_params": {
+                    "system_prompt_path": "prompts/prompt_elevator_reward.txt",
+                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (.*)\n", # only use the first match, same line
+                    "extract_reward_regex_fallback": [r"TOTAL_REWARD_FINAL = (.*)\n"],
+                }
+            },
+            "llm_value": {
+                "env_params": {
+                    "system_prompt_path": "prompts/prompt_elevator_value.txt",
+                    "extract_value_regex": r"value: (.*)",
+                    "extract_value_regex_fallback": [r"value: (.*)"],
+                }
             }
         }
         

@@ -256,8 +256,16 @@ class LLMPolicyAgent:
         
     def save_prompt_buffer(self, path):
         with open(path, "wb") as f:
-            print(f"Saving prompt buffer to {path}")
-            pickle.dump(self.prompt_buffer, f)
+            try:
+                print(f"Saving prompt buffer to {path}")
+                pickle.dump(self.prompt_buffer, f)
+            except Exception as e:
+                print(f"Error saving prompt buffer: {e}")
+            
+    def __del__(self):
+        if len(self.prompt_buffer) > 0:
+            self.save_prompt_buffer(self.prompt_buffer_save_path)
+            print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
     
     
         
