@@ -5,7 +5,6 @@ import alfworld.agents.environment as environment
 import yaml
 import re
 import copy
-import time
 
 from alfworld.agents.modules.generic import EpisodicCountingMemory, ObjCentricEpisodicMemory
 
@@ -13,20 +12,25 @@ class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
-    current_goal = None
-
     def __init__(self):
-        config = self._load_config()
+        self.config = self._load_config()
+        env = self._init_alfworld_env(self.config)
 
-        env_type = config['env']['type']
-        env = getattr(environment, env_type)(config, train_eval='train')
-        env = env.init_env(batch_size=1) # batch_size = how many environments to run in parallel
+        self.env_stack = []
+        self.taskdir = ''
+        self.current_goal = ''
 
         self.action_history = []
         self.episodic_counting_memory = EpisodicCountingMemory() # Tracks newly explored states
         self.obj_centric_episodic_counting_memory = ObjCentricEpisodicMemory() # Tracks newly explored objects
 
         super().__init__(env)
+    
+    def _init_alfworld_env(self, config):
+        env_type = config['env']['type']
+        env = getattr(environment, env_type)(config, train_eval='train')
+        env = env.init_env(batch_size=1) # batch_size = how many environments to run in parallel
+        return env
 
     def reset(self):
         self.action_history = []
@@ -38,7 +42,7 @@ class ALFWorldEnvironment(gym.Wrapper):
         num_retries = 0
         while not match and num_retries < TOTAL_NUM_RETRIES:
             try:
-                state, infos = self.env.reset() # Can also accept task_file if needed
+                state, infos = self.env.reset()
 
                 find_goal_regex = r"Your task is to:\s+(.*)"
                 match = re.search(find_goal_regex, state[0])
@@ -52,6 +56,8 @@ class ALFWorldEnvironment(gym.Wrapper):
                     raise
                 num_retries += 1
 
+        self.taskdir = self._extract_taskdir(infos)
+
         # Add initial state to memory
         self.episodic_counting_memory.push(state)
         self.obj_centric_episodic_counting_memory.push(state)
@@ -59,41 +65,47 @@ class ALFWorldEnvironment(gym.Wrapper):
         state = self._map_state(state, infos)
 
         return state, infos
+    
+    def _extract_taskdir(self, infos):
+        gamefile = infos['extra.gamefile'][0]
+        taskdir = '/'.join(gamefile.split('/')[:-1])
+        return taskdir
 
     def checkpoint(self):
         '''
         return a checkpoint of the current environment state
         '''
-        return self.action_history
-        # print(type(self.env.batch_env.envs[0].unwrapped))
-        # test = self.env.batch_env.envs[0].unwrapped._pddl_state.downward_lib
-        # self.env.batch_env.envs[0].unwrapped._pddl_state.downward_lib = ''
-        # print(test)
-        # print(type(test))
-        # # print(copy.deepcopy(self.env.batch_env.envs[0].unwrapped._pddl_state._operators))
-        # print(copy.deepcopy(self.env.batch_env.envs[0].unwrapped))
-        # exit()
-        # return (self.env.batch_env.envs[0].unwrapped.state.copy(),
-        #         copy.deepcopy(self.env.batch_env.last),
-        #         copy.deepcopy(self.episodic_counting_memory),
-        #         copy.deepcopy(self.obj_centric_episodic_counting_memory))
+        # Store current environment
+        self.env_stack.append(self.env)
+
+        # Initialize environment with only current task
+        checkpoint_config = copy.deepcopy(self.config)
+        checkpoint_config['dataset']['data_path'] = self.taskdir
+        self.env = self._init_alfworld_env(checkpoint_config)
+
+        # Take steps to reach state of current environment
+        self.env.reset()
+        for action in self.action_history:
+            self.env.step(action)
+
+        # Return action_history, episodic_counting_memory, obj_centric_episodic_counting_memory
+        return (self.action_history, copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
 
     def restore_checkpoint(self, checkpoint):
         '''
         restore the environment to a previous state
         '''
-        self.env.reset()
-        for action in checkpoint:
-            self.env.step(action)
-        # (self.env.batch_env.envs[0].unwrapped.state,
-        #  self.env.batch_env.last,
-        #  self.episodic_counting_memory,
-        #  self.obj_centric_episodic_counting_memory) = checkpoint
+        # Set environment to previous
+        self.env = self.env_stack.pop()
+
+        self.action_history, self.episodic_counting_memory, self.obj_centric_episodic_counting_memory = checkpoint
 
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
         curr_reward = self._get_current_reward(reward[0], next_state)
         next_state = self._map_state(next_state, infos)
+
+        self.action_history.append(action)
 
         return next_state, curr_reward, done[0], None, infos
 
