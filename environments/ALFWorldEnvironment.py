@@ -117,6 +117,6 @@ class ALFWorldEnvironment(gym.Wrapper):
         return {
             'text_state': state[0],
             'valid_actions': infos['admissible_commands'][0],
-            'expert_actions': infos['extra.expert_plan'][0],
+            'expert_actions': infos['extra.expert_plan'][0] if 'extra.expert_plan' in infos else [],
         }
     
