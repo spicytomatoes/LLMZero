@@ -30,6 +30,8 @@ class StateNode:
                         else bool(value) if isinstance(value, np.bool_)
                             else value)
             for key, value in self.state.items()}
+        elif isinstance(self.state, str):
+            return self.state
         else:
             data = self.state.tolist() if isinstance(self.state, np.ndarray) else self.state
         return json.dumps(data)
