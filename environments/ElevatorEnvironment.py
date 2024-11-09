@@ -5,7 +5,7 @@ import copy
 import numpy as np
 np.random.seed(42)
 import os
-os.environ["TOKENIZERS_PARALLELISM"] = "true"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 class ElevatorEnvironment(gym.Wrapper):
     '''
     wrapper for Elevator environment

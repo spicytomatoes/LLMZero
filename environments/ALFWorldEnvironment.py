@@ -1,7 +1,11 @@
+"""Adapted from https://github.com/alfworld/alfworld"""
+
 import gym
 import alfworld.agents.environment as environment
 import yaml
 import re
+import copy
+import time
 
 from alfworld.agents.modules.generic import EpisodicCountingMemory, ObjCentricEpisodicMemory
 
@@ -18,12 +22,14 @@ class ALFWorldEnvironment(gym.Wrapper):
         env = getattr(environment, env_type)(config, train_eval='train')
         env = env.init_env(batch_size=1) # batch_size = how many environments to run in parallel
 
+        self.action_history = []
         self.episodic_counting_memory = EpisodicCountingMemory() # Tracks newly explored states
         self.obj_centric_episodic_counting_memory = ObjCentricEpisodicMemory() # Tracks newly explored objects
 
         super().__init__(env)
 
     def reset(self):
+        self.action_history = []
         self.episodic_counting_memory.reset()
         self.obj_centric_episodic_counting_memory.reset()
 
@@ -58,13 +64,31 @@ class ALFWorldEnvironment(gym.Wrapper):
         '''
         return a checkpoint of the current environment state
         '''
-        return self.env.batch_env.envs[0].unwrapped.state.copy()
+        return self.action_history
+        # print(type(self.env.batch_env.envs[0].unwrapped))
+        # test = self.env.batch_env.envs[0].unwrapped._pddl_state.downward_lib
+        # self.env.batch_env.envs[0].unwrapped._pddl_state.downward_lib = ''
+        # print(test)
+        # print(type(test))
+        # # print(copy.deepcopy(self.env.batch_env.envs[0].unwrapped._pddl_state._operators))
+        # print(copy.deepcopy(self.env.batch_env.envs[0].unwrapped))
+        # exit()
+        # return (self.env.batch_env.envs[0].unwrapped.state.copy(),
+        #         copy.deepcopy(self.env.batch_env.last),
+        #         copy.deepcopy(self.episodic_counting_memory),
+        #         copy.deepcopy(self.obj_centric_episodic_counting_memory))
 
     def restore_checkpoint(self, checkpoint):
         '''
         restore the environment to a previous state
         '''
-        self.env.batch_env.envs[0].unwrapped.state = checkpoint
+        self.env.reset()
+        for action in checkpoint:
+            self.env.step(action)
+        # (self.env.batch_env.envs[0].unwrapped.state,
+        #  self.env.batch_env.last,
+        #  self.episodic_counting_memory,
+        #  self.obj_centric_episodic_counting_memory) = checkpoint
 
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
@@ -74,9 +98,12 @@ class ALFWorldEnvironment(gym.Wrapper):
         return next_state, curr_reward, done[0], None, infos
 
     def _get_current_reward(self, step_reward, next_state):
+        MAX_NORM_VALUE = 0.2
         new_state_reward = self.episodic_counting_memory.is_a_new_state(next_state)[0] # Between 0 and 1
+        new_state_reward = new_state_reward * MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
         new_object_reward = self.obj_centric_episodic_counting_memory.get_object_novelty_reward(next_state)[0] # Between 0 and 1
-        step_reward = -3 if step_reward == 0 else step_reward # Haven't reached goal: 0 -> -3, Reaching goal: 1
+        new_object_reward = new_object_reward * MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
+        step_reward = -0.03 if step_reward == 0 else step_reward # Haven't reached goal: 0 -> -3, Reaching goal: 1
 
         current_reward = step_reward + new_state_reward + new_object_reward
 
