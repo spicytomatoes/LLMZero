@@ -22,11 +22,13 @@ while True:
     if type(env) == ALFWorldEnvironment:
         action = input("Enter action: ")
     else:
-        action = int(input("Enter action: "))
-    print(f"Action: {env.action_to_text(action)}")
+        action = input("Enter action: ")
+        
+    action = env.action_txt_to_idx(action)
+    # print(f"Action: {env.action_to_text(action)}")
     next_state, reward, done, _, info = env.step(action)
     print("Next state:")
-    print(next_state)
+    # print(next_state)
     print(env.state_to_text(next_state))
     print(f"Reward: {reward}")
     if done:
