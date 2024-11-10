@@ -27,8 +27,11 @@ Here are the only valid formats for states. Note you are meant to replace words 
 - You pick up the {object}.
 - You put the {object} in/on the {receptacle}.
 - You put the {object} in the {receptacle}.
+- On the {receptacle}, you see {objects}.
 - You are carrying: {objects}.
 - You are not carrying anything.
+- You are in the middle of a room. Looking quickly around you, you see {receptacles}.
+- You are facing the {receptacle}. On the {receptacle}, you see {objects}.
 - Nothing happens.
 
 # Valid Actions
@@ -73,15 +76,25 @@ This action is taken by the agent to place an object in/on a receptacle. The nex
 Action Format: put {object} in/on {receptacle}
 Possible Next States: "You pick up the {object} from the {name}.", "You pick up the {object}."
 
-6. **Examine an Object or Receptacle**
-This action is taken by the agent to examine a visible object or receptacle. The next state should provide a description for the said entity.
-Action Format: examine {receptacle}, examine {object}
+6. **Examine a Receptacle**
+This action is taken by the agent to examine a visible receptacle. The next state should mention all of the objects an agent can see on the receptacle.
+Action Format: examine {receptacle}
+Possible Next States: "On the {receptacle}, you see {objects}."
+
+7. **Examine an Object**
+This action is taken by the agent to examine an object in the agent's possession. The next state should describe the object they are seeing.
+Action Format: examine {object}
 Possible Next States: ""
 
-7. **Checking Inventory**
+8. **Checking Inventory**
 This action is taken by the agent to check the current objects in their possession. The next state should list out all the objects the agent has. This can be done in any state regardless of what the agent observes.
 Action Format: inventory
 Possible Next States: "You are carrying: {objects}.", "You are not carrying anything."
+
+9. **Examining Current Environment**
+This action is taken by the agent to observe his current surroundings. The next state should list out all the receptacle and objects the agent can observe. This can be done in any state regardless of what the agent observes.
+Action Format: look
+Possible Next States: "You are in the middle of a room. Looking quickly around you, you see {receptacles}.", "You are facing the {receptacle}. On the {receptacle}, you see {objects}."
 
 Notes:
 - If the agent takes any action that doesn't follow the formats specified above, the next state is always "Nothing happens."
@@ -114,6 +127,7 @@ Next state: {state}
 **Reasoning**:
 The given action follows the action format for **Moving to a Receptacle**. Thus, in the next state, we expect the agent to move to the location sidetable 1. Alarmclocks, credit cards, desklamps, keychains, pen and pencils are objects that can usually be found on a sidetable. Using this information, we produce the next output in the format specified.
 
+**Output**:
 ```plaintext
 Next State: 
 You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
@@ -128,7 +142,38 @@ You arrive at shelf 1. On the shelf 1, you see a cd 1, and a pen 1.
 **Reasoning**
 When comparing the given action to all specified action formats, it is not similar any of them. Therefore, the next state will always be "Nothing happens."
 
+**Output**:
 ```plaintext
 Next State: 
 Nothing happens.
+```
+
+### Example 3
+**Current State**
+You arrive at drawer 8. The drawer 8 is closed.
+
+**Action**: open drawer 8
+
+**Reasoning**
+This action has the same action format as **Opening a Receptacle**. This means the agent opened a receptacle, in this case, drawer 8. Drawer 8 will now be open and the agent can observe the objects located inside of it. Books, CDs, pencils, and cellphones are objects commonly found in drawers. Using this information we replace the {receptacle} and {objects} placeholders from the state format to produce the predicted next state.
+
+**Output**:
+```plaintext
+Next State: 
+You open the drawer 8. The drawer 8 is open. In it, you see a book 2, and a cd 1.
+```
+
+### Example 4
+**Current State**
+You arrive at shelf 2. On the shelf 2, you see a bowl 1, a pencil 2, and a vase 3.
+
+**Action**: put alarmclock 2 in/on shelf 2
+
+**Reasoning**
+This action has the same action format as **Place an Object in/on a Receptacle**. Thus, the agent is trying to place an object in his inventory on to a visible receptacle. We assume that the object, alarmclock 2, is in the agent's possession. Alarmclock 2 will now be found on shelf 2 because the agent placed it on that receptacle.
+
+**Output**:
+```plaintext
+Next State: 
+You put the alarmclock 2 in/on the shelf 2.
 ```
