@@ -60,6 +60,10 @@ class LLMModel:
             '''
             
             if user_prompt in self.prompt_buffer:
+                if self.debug:
+                    print("Prompt found in buffer")
+                    print(self.prompt_buffer[user_prompt])
+                
                 return self.prompt_buffer[user_prompt]
             
             # print("********************************************************")
