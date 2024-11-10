@@ -12,11 +12,15 @@ class ElevatorEnvironment(gym.Wrapper):
     '''
     def __init__(self):
         env = Elevator(instance=5)
-        env.reset(42)
+        env.reset()
         super(ElevatorEnvironment, self).__init__(env)
+        
+        self.seed = None
         
     def reset(self, seed=None):
         state = self.base_env.reset(seed)
+        self.seed = seed
+        
         return state, {}
     
     def checkpoint(self):

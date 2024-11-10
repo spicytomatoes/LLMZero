@@ -1,9 +1,9 @@
 import numpy as np
-from utils import DictToObject, softmax
+from utils import DictToObject, softmax, elevator_estimate_value
 import tqdm
 import json
 
-np.random.seed(42)
+# np.random.seed(42)
 
 class StateNode:
     def __init__(self, state, valid_actions, reward = 0, done = False, parent=None):
@@ -64,12 +64,12 @@ class MCTSAgent:
         self.policy = policy
         
         self.args = {
-            "num_simulations": 1000,
-            "c_puct": 7,    #should be proportional to the scale of the rewards 
-            "gamma": 0.95,
-            "max_depth": 75,
+            "num_simulations": 200,
+            "c_puct": 100,    #should be proportional to the scale of the rewards 
+            "gamma": 1,
+            "max_depth": 40,
             "num_rollouts": 10,
-            "backprop_T": 40,
+            "backprop_T": 50,
         }
         
         if args is not None:
@@ -88,6 +88,8 @@ class MCTSAgent:
         
         for _ in tqdm.tqdm(range(self.args.num_simulations)):
             checkpoint = self.env.checkpoint()
+            seed = np.random.randint(0, 1000)
+            self.env.base_env.seed(seed)
             self.simulate(root)
             self.env.restore_checkpoint(checkpoint)
             
@@ -124,27 +126,35 @@ class MCTSAgent:
                 depth += 1
                 
         # Step 3: Rollout, simulate the rest of the trajectory using a random policy
-        rollout_rewards = []
+        # rollout_rewards = []
         
-        for _ in range(self.args.num_rollouts):
-            checkpoint = self.env.checkpoint()
-            rollout_reward = 0
-            rollout_depth = 0
-            tmp_depth = depth
+        # for _ in range(self.args.num_rollouts):
+        #     checkpoint = self.env.checkpoint()
+        #     rollout_reward = 0
+        #     rollout_depth = 0
+        #     tmp_depth = depth
             
-            obs = current_state_node.state
-            while not done and tmp_depth < self.args.max_depth:
-                valid_actions = self.env.get_valid_actions(obs)
-                action = np.random.choice(valid_actions)
-                obs, reward, done, _, _ = self.env.step(action)
-                tmp_depth += 1
-                rollout_depth += 1
-                rollout_reward += reward * self.args.gamma ** rollout_depth
+        #     obs = current_state_node.state
+        #     while not done and tmp_depth < self.args.max_depth:
+        #         valid_actions = self.env.get_valid_actions(obs)
+        #         action = np.random.choice(valid_actions)
+        #         obs, reward, done, _, _ = self.env.step(action)
+        #         tmp_depth += 1
+        #         rollout_depth += 1
+        #         rollout_reward += reward * self.args.gamma ** rollout_depth
                 
-            rollout_rewards.append(rollout_reward)
-            self.env.restore_checkpoint(checkpoint)
+        #     rollout_rewards.append(rollout_reward)
+        #     self.env.restore_checkpoint(checkpoint)
             
-        rollout_reward = np.mean(rollout_rewards)
+        # rollout_reward = np.mean(rollout_rewards)
+            
+        # test using value estimation instead of rollout
+        rollout_reward = elevator_estimate_value(next_state_node.state)
+        # print("-----------------------------------------")
+        # print(f"Action: {best_action_node.action}")
+        # print(f"State:\n {self.env.state_to_text(next_state_node.state)}")
+        # print(f"Rollout reward: {rollout_reward}")
+        # print("-----------------------------------------")
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
@@ -155,12 +165,17 @@ class MCTSAgent:
             # current_action_node.Q += (cumulative_reward - current_action_node.Q) / current_action_node.N
             current_action_node.Rs.append(cumulative_reward)
             # softmax to prioritize actions with higher rewards
-            best_action_node.Q = np.sum(np.array(best_action_node.Rs) * softmax(best_action_node.Rs, T=self.args.backprop_T))
+            # best_action_node.Q = np.sum(np.array(best_action_node.Rs) * softmax(best_action_node.Rs, T=self.args.backprop_T))
+            best_action_node.Q = np.mean(best_action_node.Rs)
             current_state_node = current_action_node.parent
             current_state_node.N += 1
             cumulative_reward = current_state_node.reward + self.args.gamma * cumulative_reward
             current_action_node = current_state_node.parent
             
+        # for i, child in enumerate(state_node.children):
+        #     if self.debug:
+        #         print(f"Action {child.action}: Q = {child.Q}, N = {child.N}")
+        
         return cumulative_reward    #return not actually needed, just for debugging
             
             

@@ -1,11 +1,11 @@
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
-from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
+# from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from agents.mcts import MCTSAgent
 from agents.elevator_expert import ElevatorExpertPolicyAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from environments.BlackjackEnvironment import BlackjackEnvironment
-from environments.ALFWorldEnvironment import ALFWorldEnvironment
+# from environments.ALFWorldEnvironment import ALFWorldEnvironment
 
 env = ElevatorEnvironment()
 # env = BlackjackEnvironment()
@@ -19,7 +19,7 @@ env_params = {
 # agent = ElevatorExpertPolicyAgent()
 mcts_args = {
             "num_simulations": 100,
-            "c_puct": 500,    #should be proportional to the scale of the rewards 
+            "c_puct": 20,    #should be proportional to the scale of the rewards 
             "gamma": 0.95,
             "max_depth": 100,
             "num_rollouts": 10,
