@@ -12,8 +12,8 @@ class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
-    def __init__(self):
-        self.config = self._load_config()
+    def __init__(self, config_path='configs/alfworld_env.yaml'):
+        self.config = self._load_config(config_path)
         env = self._init_alfworld_env(self.config)
 
         self.env_stack = []
@@ -48,7 +48,7 @@ class ALFWorldEnvironment(gym.Wrapper):
                 match = re.search(find_goal_regex, state[0])
 
                 if match:
-                    self.current_goal = match.group(1)
+                    self.current_goal = match.group()
                 else:
                     raise Exception("Could not find valid task with goal.")
             except:
@@ -103,7 +103,7 @@ class ALFWorldEnvironment(gym.Wrapper):
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
         curr_reward = self._get_current_reward(reward[0], next_state)
-        next_state = self._map_state(next_state, infos)
+        next_state = self._map_state(next_state, infos, self.current_goal)
 
         self.action_history.append(action)
 
@@ -142,15 +142,15 @@ class ALFWorldEnvironment(gym.Wrapper):
     def goal_to_text(self):
         return self.current_goal
 
-    def _load_config(self):
-        CONFIG_FILE_PATH = 'configs/alfworld_env.yaml'
-        with open(CONFIG_FILE_PATH) as reader:
+    def _load_config(self, config_path):
+        with open(config_path) as reader:
             config = yaml.safe_load(reader)
         return config
 
-    def _map_state(self, state, infos):
+    def _map_state(self, state, infos, goal = None):
+        goal_text = f'\n\n{self.current_goal}' if goal is not None else ''
         return {
-            'text_state': state[0],
+            'text_state': state[0] + goal_text,
             'valid_actions': infos['admissible_commands'][0],
         }
     
