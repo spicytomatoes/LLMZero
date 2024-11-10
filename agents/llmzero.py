@@ -188,9 +188,7 @@ class LLMRewardModel(LLMModel):
             '''
             
             # construct user prompt
-            user_prompt = ""
-            user_prompt += state
-            user_prompt += "\nAction: " + action + "\n" # should be one move only
+            user_prompt = state
             
             response = self.query_llm(user_prompt)
             
@@ -203,23 +201,22 @@ class LLMRewardModel(LLMModel):
             return reward, done, status
             
         def extract_reward(self, response: str):
-            '''
-            Extract the reward from the LLM response
-            '''
-            
-            match = re.search(self.reward_regex, response, re.DOTALL | re.IGNORECASE)
+            # '''
+            # Extract the reward from the LLM response
+            # '''
+            match = re.search(self.reward_regex, response)
             if match is not None:
-                reward = float(match.group(1))
-                return reward, "success"
+                reward = match.group(1)
+                return float(reward), "success"
             else:
                 if self.debug:
                     print("Warning: No match found, trying fallback regex...")
                 
                 for regex in self.reward_regex_fallback:
-                    match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                    match = re.search(regex, response)
                     if match is not None:
-                        reward = float(match.group(1))
-                        return reward, "success on fallback regex"
+                        reward = match.group(1)
+                        return float(reward), "success on fallback regex"
                 else:
                     print("Error: No match found with fallback regex, returning 0 as reward")
                     return 0, "error"
