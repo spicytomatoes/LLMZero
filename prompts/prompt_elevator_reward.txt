@@ -19,14 +19,6 @@ There are (0-10) people in the elevator.
 Elevator is moving (up/down).
 Elevator door is (open/closed).
 
-# Valid Actions
-
-The valid actions are:
-1. **nothing**: The elevator not move, open, or close its doors.
-2. **move**: The elevator attempts to move one floor in the current direction.
-3. **open**: The elevator opens its door.
-4. **close**: The elevator closes its door.
-
 # Steps to Calculate Reward at current state
 
 The reward calculation consist of following variables:
@@ -43,18 +35,18 @@ Reward calculation steps:
 1. **Reward for Delivered Passengers**:
   - If the elevator is at floor 1, it means passengers have reached their destination.
   - Calculate the reward from passengers delivered:
-    - **action** is **open** and elevator at floor 1
+    - elevator at floor 1
       REWARD_DELIVERED = reward_delivered * people_in_ele
-    - **action** is not **open** or elevator not at floor 1
-      REWARD_DELIVERED = 0.0
+    - elevator not at floor 1
+      REWARD_DELIVERED = 0
 
 2. **Penalty for People in the Elevator**:
   - Each person in the elevator incurs a penalty.
-  - Calculate the penalty from passengers currently in the elevator:
-    - **action** is **open** and elevator at floor 1
+  - Calculate the penalty if passengers in the elevator:
+    - if no passangers in elevator
       PENALTY_IN_ELEVATOR = 0.0
-    - **action** is not **open** or elevator not at floor 1
-      PENALTY_IN_ELEVATOR = in_ele_penalty * people_in_ele
+    - if at least one passagers in elevator
+      PENALTY_IN_ELEVATOR = in_ele_penalty
 
 3. **Penalty for People Waiting on Floors**:
   - Each passenger waiting on any floor (all floors except floor 1) incur a penalty.
@@ -77,8 +69,8 @@ Provide your reasoning, then compute the reward. The reasoning should be followi
 
 ```plaintext
 **Reasoning**:
-1. **Reward for Delivered Passengers**: **action** [is/is not] **open** and elevator [in/not in] floor 1, REWARD_DELIVERED = [number]
-2. **Penalty for People in the Elevator**: **action** [is/is not] **open** and elevator [in/not] in floor 1, PENALTY_IN_ELEVATOR = [in_ele_penalty * people_in_ele] = [number]
+1. **Reward for Delivered Passengers**: Elevator [in/not in] floor 1, REWARD_DELIVERED = [number]
+2. **Penalty for People in the Elevator**: Passengers [in/not in] elevator, PENALTY_IN_ELEVATOR = in_ele_penalty
 3. **Penalty for People Waiting on Floors**:
   - floor 2: [number] people
   - floor 3: [number] people
@@ -93,35 +85,34 @@ Provide your reasoning, then compute the reward. The reasoning should be followi
 # Example
 
 ### Example 1
-
-People waiting at floor 2: 0
-People waiting at floor 3: 0
-People waiting at floor 4: 2
+#### Input ####
+People waiting at floor 2: 1
+People waiting at floor 3: 2
+People waiting at floor 4: 3
 People waiting at floor 5: 1
 Elevator at floor 2
 There are 3 people in the elevator.
 Elevator is moving down.
 Elevator door is closed.
 
-Action: close
-
+#### Output ####
 ```plaintext
 **Reasoning**:
-1. **Reward for Delivered Passengers**: **action** is not **open** and elevator not in floor 1, REWARD_DELIVERED = 0.0
-2. **Penalty for People in the Elevator**: PENALTY_IN_ELEVATOR = 0.75 * 3 = 2.25
+1. **Reward for Delivered Passengers**: Elevator not in floor 1, REWARD_DELIVERED = 0.0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
 3. **Penalty for People Waiting on Floors**:
-  - floor 2: 0 people
-  - floor 3: 0 people
-  - floor 4: 2 people
+  - floor 2: 1 people
+  - floor 3: 2 people
+  - floor 4: 3 people
   - floor 5: 1 people
-  PENALTY_WAITING = 3.0 * (0 + 0 + 2 + 1) = 9.0
+  PENALTY_WAITING = 3.0 * (1 + 2 + 3 + 1) = 21.0
 4. **Total Reward Calculation**:
-  TOTAL_REWARD = 0.0 - (2.25 + 9.0) = -11.25
-  TOTAL_REWARD_FINAL = -11.23
+  TOTAL_REWARD = 0.0 - (0.75 + 21.0) = -21.75
+  TOTAL_REWARD_FINAL = -21.75
 ```
 
 ### Example 2
-
+#### Input ####
 People waiting at floor 2: 1
 People waiting at floor 3: 1
 People waiting at floor 4: 2
@@ -131,12 +122,11 @@ There are 3 people in the elevator.
 Elevator is moving down.
 Elevator door is closed.
 
-Action: move
-
+#### Output ####
 ```plaintext
 **Reasoning**:
-1. **Reward for Delivered Passengers**: **action** is not **open** and elevator in floor 1, REWARD_DELIVERED = 0.0
-2. **Penalty for People in the Elevator**: PENALTY_IN_ELEVATOR = 0.75 * 3 = 2.25
+1. **Reward for Delivered Passengers**: elevator in floor 1, REWARD_DELIVERED = 30.0 * 3 = 90.0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
 3. **Penalty for People Waiting on Floors**:
   - floor 2: 1 people
   - floor 3: 1 people
@@ -144,40 +134,39 @@ Action: move
   - floor 5: 3 people
   PENALTY_WAITING = 3.0 * (1 + 1 + 2 + 3) = 21.0
 4. **Total Reward Calculation**:
-  TOTAL_REWARD = 0.0 - (2.25 + 21.0) = -23.25
-  TOTAL_REWARD_FINAL = -23.25
+  TOTAL_REWARD = 90.0 - (0.75 + 21.0) = 68.25
+  TOTAL_REWARD_FINAL = 68.25
 ```
 
 ### Example 3
-
+#### Input ####
 People waiting at floor 2: 0
 People waiting at floor 3: 0
-People waiting at floor 4: 3
-People waiting at floor 5: 1
+People waiting at floor 4: 0
+People waiting at floor 5: 0
 Elevator at floor 1
 There are 3 people in the elevator.
 Elevator is moving down.
 Elevator door is closed.
 
-Action: open
-
+#### Output ####
 ```plaintext
 **Reasoning**:
-1. **Reward for Delivered Passengers**: **action** is **open** and elevator at floor 1, REWARD_DELIVERED = 30.0 * 3 = 90.0
-2. **Penalty for People in the Elevator**: **action** is **open** and elevator at floor 1, PENALTY_IN_ELEVATOR = 0.0
+1. **Reward for Delivered Passengers**: Elevator at floor 1, REWARD_DELIVERED = 30.0 * 3 = 90.0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
 3. **Penalty for People Waiting on Floors**:
   - floor 2: 0 people
   - floor 3: 0 people
   - floor 4: 3 people
   - floor 5: 1 people
-  PENALTY_WAITING = 3.0 * (0 + 0 + 3 + 1) = 12.0
+  PENALTY_WAITING = 3.0 * (0 + 0 + 0 + 0) = 0.0
 4. **Total Reward Calculation**:
-  TOTAL_REWARD = 90.0 - (0.0 + 12.0) = 78
-  TOTAL_REWARD_FINAL = 78
+  TOTAL_REWARD = 90.0 - (0.75 + 0.0) = 89.25
+  TOTAL_REWARD_FINAL = 89.25
 ```
 
 ### Example 4
-
+#### Input ####
 People waiting at floor 2: 1
 People waiting at floor 3: 1
 People waiting at floor 4: 2
@@ -187,12 +176,11 @@ There are 5 people in the elevator.
 Elevator is moving down.
 Elevator door is closed.
 
-Action: open
-
+#### Output ####
 ```plaintext
 **Reasoning**:
-1. **Reward for Delivered Passengers**: **action** is **open** and elevator at floor 1, REWARD_DELIVERED = 30.0 * 5 = 150.0
-2. **Penalty for People in the Elevator**: **action** is **open** and elevator at floor 1, PENALTY_IN_ELEVATOR = 0.0
+1. **Reward for Delivered Passengers**: Elevator at floor 1, REWARD_DELIVERED = 30.0 * 5 = 150.0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
 3. **Penalty for People Waiting on Floors**:
   - floor 2: 1 people
   - floor 3: 1 people
@@ -200,6 +188,87 @@ Action: open
   - floor 5: 3 people
   PENALTY_WAITING = 3.0 * (1 + 1 + 2 + 3) = 21.0
 4. **Total Reward Calculation**:
-  TOTAL_REWARD = 150.0 - (0.0 + 21.0) = 129.0
-  TOTAL_REWARD_FINAL = 129.0
+  TOTAL_REWARD = 150.0 - (0.75 + 21.0) = 128.25
+  TOTAL_REWARD_FINAL = 128.25
+```
+
+### Example 5
+#### Input ####
+People waiting at floor 2: 1
+People waiting at floor 3: 1
+People waiting at floor 4: 2
+People waiting at floor 5: 3
+Elevator at floor 2
+There are 5 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+#### Output ####
+```plaintext
+**Reasoning**:
+1. **Reward for Delivered Passengers**: Elevator not in floor 1, REWARD_DELIVERED = 0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
+3. **Penalty for People Waiting on Floors**:
+  - floor 2: 1 people
+  - floor 3: 1 people
+  - floor 4: 2 people
+  - floor 5: 3 people
+  PENALTY_WAITING = 3.0 * (1 + 1 + 2 + 3) = 21.0
+4. **Total Reward Calculation**:
+  TOTAL_REWARD = 0 - (0.75 + 21.0) = -21.75
+  TOTAL_REWARD_FINAL = -21.75
+```
+
+### Example 6
+#### Input ####
+People waiting at floor 2: 1
+People waiting at floor 3: 1
+People waiting at floor 4: 2
+People waiting at floor 5: 3
+Elevator at floor 2
+There are 7 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+#### Output ####
+```plaintext
+**Reasoning**:
+1. **Reward for Delivered Passengers**: Elevator not in floor 1, REWARD_DELIVERED = 0
+2. **Penalty for People in the Elevator**: Passengers in elevator, PENALTY_IN_ELEVATOR = 0.75
+3. **Penalty for People Waiting on Floors**:
+  - floor 2: 1 people
+  - floor 3: 1 people
+  - floor 4: 2 people
+  - floor 5: 3 people
+  PENALTY_WAITING = 3.0 * (1 + 1 + 2 + 3) = 21.0
+4. **Total Reward Calculation**:
+  TOTAL_REWARD = 0 - (0.75 + 21.0) = -21.75
+  TOTAL_REWARD_FINAL = -21.75
+```
+
+### Example 7
+#### Input ####
+People waiting at floor 2: 1
+People waiting at floor 3: 1
+People waiting at floor 4: 2
+People waiting at floor 5: 3
+Elevator at floor 5
+There are 0 people in the elevator.
+Elevator is moving down.
+Elevator door is closed.
+
+#### Output ####
+```plaintext
+**Reasoning**:
+1. **Reward for Delivered Passengers**: Elevator not in floor 1, REWARD_DELIVERED = 0
+2. **Penalty for People in the Elevator**: Passengers not in elevator, PENALTY_IN_ELEVATOR = 0.0
+3. **Penalty for People Waiting on Floors**:
+  - floor 2: 1 people
+  - floor 3: 1 people
+  - floor 4: 2 people
+  - floor 5: 3 people
+  PENALTY_WAITING = 3.0 * (1 + 1 + 2 + 3) = 21.0
+4. **Total Reward Calculation**:
+  TOTAL_REWARD = 0 - (0.0 + 21.0) = -21.0
+  TOTAL_REWARD_FINAL = -21.0
 ```

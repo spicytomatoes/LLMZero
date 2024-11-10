@@ -93,7 +93,11 @@ class LLMPolicyAgent:
         return action
     
     def get_action_distribution(self, state):
-        state_text = self.env.state_to_text(state)
+        if isinstance(state, str):
+            state_text = state
+        else:
+            state_text = self.env.state_to_text(state)
+            
         valid_actions_text = self.env.get_valid_actions_text(state)
         
         user_prompt = "**State**:\n" + state_text
