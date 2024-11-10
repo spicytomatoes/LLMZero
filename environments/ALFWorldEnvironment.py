@@ -14,7 +14,7 @@ class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
-    def __init__(self, config_path='configs/alfworld_env.yaml'):
+    def __init__(self, config_path='configs/alfworld_env_test.yaml'):
         self.config = self._load_config(config_path)
         env = self._init_alfworld_env(self.config)
 

@@ -110,6 +110,7 @@ for i in range(num_episodes_to_run):
         total_reward += reward
         
         if done:
+            print("last state:",next_state)
             rewards.append(total_reward)
             break
         
