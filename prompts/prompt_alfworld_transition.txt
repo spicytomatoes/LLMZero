@@ -1,7 +1,7 @@
 
 Provide a sample next state of a household modeled as a POMDP (Partially Observable Markov Decision Process) based on a given action. The system involves looking for specific household items and placing them in specific locations within the house.
 
-# State Representation
+# Environment Entities
 
 The household environment is made up of two types of entities:
 1. **Objects**: These are common household items. These objects can be picked up or put down. (ex. book, pen, cd, alarmclock)
@@ -11,6 +11,9 @@ Here are additional characteristics of these entities:
 - There may be multiple copies of receptacles or objects. To differentiate them, a number is added to each item regardless of if it has multiple copies or not. (ex. armchair 1, drawer 1, drawer 2, book 1, pen 1, pen 2, pen 3)
 - Objects may be visible or hidden in receptacles. Visible objects are observed by the agent upon visiting the location. Hidden objects can only be observed after performing an action on the receptacle.
 - There are receptacles that are also treated as objects. They can be picked up or placed down. However, they can also contain items inside of them. (ex. vase)
+- When generating entities, keep in mind the specific task of the agent. This can be found in the previous state.
+
+# State Representation
 
 Agents in the household do not have complete knowledge of the house's layout. Instead, they are only able to observe receptacles and objects within their proximity.
 
@@ -33,6 +36,10 @@ Here are the only valid formats for states. Note you are meant to replace words 
 - You are in the middle of a room. Looking quickly around you, you see {receptacles}.
 - You are facing the {receptacle}. On the {receptacle}, you see {objects}.
 - Nothing happens.
+
+All of these state formats will have the goal appended at the end of it in the format below. Note that {goal} is a placedholder and should be replaced by the current goal. This can be found in the previous state given.
+
+Your task is to: {goal}
 
 # Valid Actions
 
@@ -107,13 +114,16 @@ For the valid states under State Representation, you are meant to replace the {r
 
 1. Choose which transition rule is applicable given the current state and action. The action should match one of the specified action formats or else, the next state is always, "Nothing happens."
 2. Once you have an idea of the format of the possible next states, replace the {object} and {receptacle} placeholders with actual household items. Choose items which have a high likelihood of being found there given the household environment, previous state and given action.
+3. Get the goal from the previous state and add it to the state word per word.
 
 # Output Format
 
-Provide your reasoning, then predict the next state. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state.
+Provide your reasoning, then predict the next state. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state and {goa} is meant to be replaced by the goal from the previous state.
 
 ```plaintext
 Next state: {state}
+
+Your task is to: {goal}
 ```
 
 # Examples
@@ -131,11 +141,13 @@ The given action follows the action format for **Moving to a Receptacle**. Thus,
 ```plaintext
 Next State: 
 You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+
+Your task is to: put a alarmclock in desk.
 ```
 
 ### Example 2
 **Current State**
-You arrive at shelf 1. On the shelf 1, you see a cd 1, and a pen 1.
+You arrive at shelf 1. On the shelf 1, you see a cd 1, and a pen 1.\n\nYour task is to: put some pen on shelf.
 
 **Action**: some action
 
@@ -146,11 +158,13 @@ When comparing the given action to all specified action formats, it is not simil
 ```plaintext
 Next State: 
 Nothing happens.
+
+Your task is to: put some pen on shelf.
 ```
 
 ### Example 3
 **Current State**
-You arrive at drawer 8. The drawer 8 is closed.
+You arrive at drawer 8. The drawer 8 is closed.\n\nYour task is to: put some pen on shelf.
 
 **Action**: open drawer 8
 
@@ -161,11 +175,13 @@ This action has the same action format as **Opening a Receptacle**. This means t
 ```plaintext
 Next State: 
 You open the drawer 8. The drawer 8 is open. In it, you see a book 2, and a cd 1.
+
+Your task is to: put some pen on shelf.
 ```
 
 ### Example 4
 **Current State**
-You arrive at shelf 2. On the shelf 2, you see a bowl 1, a pencil 2, and a vase 3.
+You arrive at shelf 2. On the shelf 2, you see a bowl 1, a pencil 2, and a vase 3.\n\nYour task is to: put some alarmclock on shelf. 
 
 **Action**: put alarmclock 2 in/on shelf 2
 
@@ -176,4 +192,6 @@ This action has the same action format as **Place an Object in/on a Receptacle**
 ```plaintext
 Next State: 
 You put the alarmclock 2 in/on the shelf 2.
+
+Your task is to: put some alarmclock on shelf. 
 ```
