@@ -172,45 +172,38 @@ class LLMRewardModel(LLMModel):
             
             super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
             
-        def get_reward(self, state: str, action: str):
+        def get_reward(self, state: str):
             '''
             Get the reward given the current state and action
             '''
             
             # construct user prompt
-            user_prompt = ""
-            user_prompt += state
-            user_prompt += "\nAction: " + action + "\n" # should be one move only
+            user_prompt = state
             
             response = self.query_llm(user_prompt)
             
             reward, status = self.extract_reward(response)
+            # print("after extracting ...", reward, status)
             
             return reward, status
             
         def extract_reward(self, response: str):
-            '''
-            Extract the reward from the LLM response
-            '''
-            def extract_first_float(text):
-                match = re.search(r'\b\d+\.\d+\b', text)
-                if match:
-                    return float(match.group()), "success"
-                return 0, "error"
-            
-            match = re.search(self.reward_regex, response, re.DOTALL | re.IGNORECASE)
+            # '''
+            # Extract the reward from the LLM response
+            # '''
+            match = re.search(self.reward_regex, response)
             if match is not None:
                 reward = match.group(1)
-                return extract_first_float(reward)
+                return float(reward), "success"
             else:
                 if self.debug:
                     print("Warning: No match found, trying fallback regex...")
                 
                 for regex in self.reward_regex_fallback:
-                    match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                    match = re.search(regex, response)
                     if match is not None:
                         reward = match.group(1)
-                        return extract_first_float(reward)
+                        return float(reward), "success on fallback regex"
                 else:
                     print("Error: No match found with fallback regex, using full response as reward")
                     return response, "error"
