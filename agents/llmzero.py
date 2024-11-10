@@ -2,8 +2,8 @@ import os
 import numpy as np
 import pickle
 import datetime
-from agents.llm_policy import LLMPolicyAgent
 from agents.mcts import StateNode, ActionNode
+from agents.llm_policy import LLMPolicyAgent
 from utils import DictToObject, softmax
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import util as st_utils
@@ -37,8 +37,6 @@ class LLMModel:
             self.env_params = env_params
             
             self.system_prompt = open(self.env_params["system_prompt_path"], "r").read()
-            self.reward_regex = self.env_params["extract_reward_regex"]
-            self.reward_regex_fallback = self.env_params["extract_reward_regex_fallback"]
             self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") == "True" else llm_model
             self.debug = debug
             
@@ -110,6 +108,7 @@ class LLMModel:
                 self.save_prompt_buffer(self.prompt_buffer_save_path)
                 print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
     
+    
 class LLMTransitionModel(LLMModel):
     def __init__(self, 
                  env_params,
@@ -120,6 +119,9 @@ class LLMTransitionModel(LLMModel):
                  debug=False):
         
         super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug) 
+        
+        self.extract_state_regex = env_params["extract_state_regex"]
+        self.extract_state_regex_fallback = env_params["extract_state_regex_fallback"]        
         
     def get_next_state(self, state: str, action: str):
         '''
@@ -151,7 +153,7 @@ class LLMTransitionModel(LLMModel):
             if self.debug:
                 print("Warning: No match found, trying fallback regex...")
             
-            for regex in self.extract_regex_fallback:
+            for regex in self.extract_state_regex_fallback:
                 match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
                 if match is not None:
                     next_state = match.group(1)
@@ -160,7 +162,6 @@ class LLMTransitionModel(LLMModel):
                 print("Error: No match found with fallback regex, using full response as next state")
                 return response, "error"
         
-
 class LLMRewardModel(LLMModel):
         def __init__(self, 
                  env_params,
@@ -172,7 +173,12 @@ class LLMRewardModel(LLMModel):
             
             super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
             
-        def get_reward(self, state: str):
+            self.reward_regex = env_params["extract_reward_regex"]
+            self.reward_regex_fallback = env_params["extract_reward_regex_fallback"]
+            self.extract_done_regex = env_params["extract_done_regex"]
+            self.extract_done_regex_fallback = env_params["extract_done_regex_fallback"]
+            
+        def get_reward_done(self, state: str, action: str):
             '''
             Get the reward given the current state and action
             '''
@@ -182,10 +188,13 @@ class LLMRewardModel(LLMModel):
             
             response = self.query_llm(user_prompt)
             
-            reward, status = self.extract_reward(response)
-            # print("after extracting ...", reward, status)
+            reward, status_reward = self.extract_reward(response)
             
-            return reward, status
+            done, status_done = self.extract_done(response)
+            
+            status = f"Reward: {status_reward}, Done: {status_done}"
+            
+            return reward, done, status
             
         def extract_reward(self, response: str):
             # '''
@@ -205,8 +214,35 @@ class LLMRewardModel(LLMModel):
                         reward = match.group(1)
                         return float(reward), "success on fallback regex"
                 else:
-                    print("Error: No match found with fallback regex, using full response as reward")
-                    return response, "error"
+                    print("Error: No match found with fallback regex, returning 0 as reward")
+                    return 0, "error"
+                
+        def extract_done(self, response: str):
+            '''
+            Extract the done flag from the LLM response
+            '''
+            def text_to_bool(text):
+                if "true" in text.lower():
+                    return True
+                # return False by default
+                return False
+            
+            match = re.search(self.extract_done_regex, response, re.DOTALL | re.IGNORECASE)
+            if match is not None:
+                done = match.group(1)
+                return text_to_bool(done), "success"
+            else:
+                # if self.debug:
+                #     print("Warning: No match found, trying fallback regex...")
+                
+                for regex in self.extract_done_regex_fallback:
+                    match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                    if match is not None:
+                        done = match.group(1)
+                        return text_to_bool(done), "success on fallback regex"
+                else:
+                    # print("Error: No match found with fallback regex, using full response as done")
+                    return False, "error"
                 
 class LLMValueModel(LLMModel):
     def __init__(self,
@@ -255,6 +291,7 @@ class LLMValueModel(LLMModel):
             else:
                 print("Error: No match found with fallback regex, using full response as value")
                 return response, "error"
+            
                  
                 
 class LLMZeroAgent:
@@ -284,7 +321,7 @@ class LLMZeroAgent:
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_elevator_transition.txt",
                     "extract_state_regex": r"next state:(.*?)```",
-                    "extract_regex_fallback": [r"next state:(.*)"],
+                    "extract_state_regex_fallback": [r"next state:(.*)"],
                 },
                 "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
             },
@@ -293,6 +330,8 @@ class LLMZeroAgent:
                     "system_prompt_path": "prompts/prompt_elevator_reward.txt",
                     "extract_reward_regex": r"TOTAL_REWARD_FINAL = (.*)\n", # only use the first match, same line
                     "extract_reward_regex_fallback": [r"TOTAL_REWARD_FINAL = (.*)\n"],
+                    "extract_done_regex": r"done: (.*)",
+                    "extract_done_regex_fallback": [r"done: (.*)"],
                 }
             },
             "llm_value": {
@@ -314,6 +353,9 @@ class LLMZeroAgent:
         
         # initialize policy
         self.policy = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
+        self.transition_model = LLMTransitionModel(**cfg["llm_transition"])
+        self.reward_model = LLMRewardModel(**cfg["llm_reward"])
+        self.value_model = LLMValueModel(**cfg["llm_value"])
         
     def act(self, state):
         '''
@@ -326,7 +368,9 @@ class LLMZeroAgent:
         for _ in tqdm.tqdm(range(self.args.num_simulations)):
             self.simulate(root)
             
-        best_action = self.select_action_node_greedily(root).action
+        best_action_text = self.select_action_node_greedily(root).action
+        
+        best_action = self.env.action_txt_to_idx(best_action_text)
         
         return best_action
             
@@ -343,7 +387,9 @@ class LLMZeroAgent:
         while not current_state_node.done and depth < self.args.max_depth:
             
             best_action_node = self.select_action_node(state_node)
-            obs, reward, done, _, _ = self.env.step(best_action_node.action)
+            # obs, reward, done, _, _ = self.env.step(best_action_node.action)
+            obs = self.transition_model.get_next_state(current_state_node.state, best_action_node.action)
+            reward, done, _ = self.reward_model.get_reward_done(current_state_node.state, best_action_node.action)
             
             reward = reward * self.args.gamma
             next_state_node = self.build_state(obs, reward, done, current_state_node)
@@ -358,32 +404,12 @@ class LLMZeroAgent:
                 current_state_node.reward = (current_state_node.reward * current_state_node.N + reward) / (current_state_node.N + 1)
                 depth += 1
                 
-        # Step 3: Rollout, simulate the rest of the trajectory using a random policy
-        rollout_rewards = []
-        
-        for _ in range(self.args.num_rollouts):
-            checkpoint = self.env.checkpoint()
-            rollout_reward = 0
-            rollout_depth = 0
-            tmp_depth = depth
-            
-            obs = current_state_node.state
-            while not done and tmp_depth < self.args.max_depth:
-                valid_actions = self.env.get_valid_actions(obs)
-                action = np.random.choice(valid_actions)
-                obs, reward, done, _, _ = self.env.step(action)
-                tmp_depth += 1
-                rollout_depth += 1
-                rollout_reward += reward * self.args.gamma ** rollout_depth
-                
-            rollout_rewards.append(rollout_reward)
-            self.env.restore_checkpoint(checkpoint)
-            
-        rollout_reward = np.mean(rollout_rewards)
+        # Step 3: Get value of the leaf node using from LLM value model
+        value = self.value_model.get_value(current_state_node.state)
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
-        cumulative_reward = rollout_reward
+        cumulative_reward = value
         
         while current_action_node is not None:
             current_action_node.N += 1
@@ -400,16 +426,13 @@ class LLMZeroAgent:
             
             
     def build_state(self, state, reward=0, done=False, parent=None):
-        valid_actions = self.env.get_valid_actions(state)
+        valid_actions = self.env.get_valid_actions_text(state)  # using text instead of idx
         state_node = StateNode(state, valid_actions, reward, done, parent)
         if self.policy is not None:
             distribution = self.policy.get_action_distribution(state)
             if isinstance(distribution, dict):
                 distribution = list(distribution.values())
             state_node.children_probs = distribution
-            # if self.debug:
-            #     # print(f"State: {state}")
-            #     print(f"Action distribution: {distribution}")
         
         return state_node
         
