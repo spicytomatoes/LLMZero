@@ -120,6 +120,29 @@ you should do other actions because nothing happen when you repeated the action
 **Output 3**:
 Optimal action: `"take alarmclock 1 from sidetable 1"`
 
+**Example 4**
+**State**: On the shelf 1, you see a cellphone 1, a keychain 3, a pencil 2, and a pencil 1.
+
+**Task**:
+Your task is to: put some book on bed.
+
+**Reasoning**:
+You have reached the shelf and you see nothing that related to your goals
+
+**Output**:
+Optimal action: `"examine shelf 1"`
+
+**State**: On the shelf 1, you see a cellphone 1, a keychain 3, a pencil 2, and a pencil 1.
+
+**Task**:
+Your task is to: put some book on bed.
+
+**Reasoning**:
+As you can see nothing has changed so you should changed to another action or else it would be looped
+
+**Output**:
+Optimal action: `"go to drawer 2"`
+
 # Notes
 - You can only hold one object.
 - Use common knowledge of where objects are most likely located to determine actions.
@@ -128,4 +151,4 @@ Optimal action: `"take alarmclock 1 from sidetable 1"`
 - If you can't find the object that you are looking for you should change the location to find that object.
 - If you can't find objects related to the task, and there is no action related to that location like open or close, you should go to other position.
 - If you have visited those location and you can't find the objects related to the task, you should not visited that again.
-
+- you should check the action history first and make sure that you didn't repeated the same action over and over again.

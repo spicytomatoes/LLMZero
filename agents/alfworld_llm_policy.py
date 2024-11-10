@@ -47,6 +47,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         # '''
         print("prompt:",user_prompt)
         messages, probs = self.query_llm(user_prompt)
+        time.sleep(2)
         print("response:",messages)
         print("response_prob:",probs)
         print("--------------------- this is after response ----------------------")
