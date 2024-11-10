@@ -56,7 +56,6 @@ agent = None
 if args.agent == "llm":
     llm_agents = {
         "elevator": LLMPolicyAgent,
-        "blackjack": LLMPolicyAgent,
         "alfworld": ALFWorldLLMPolicyAgent
     }
     agent = llm_agents[args.env](env, device="cuda", debug=False, **cfg["llm_policy"])
@@ -70,7 +69,11 @@ elif args.agent == "mcts-expert":
     mcts_args = cfg["mcts_expert"]["mcts_args"]
     agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=False, args=mcts_args)
 elif args.agent == "mcts-llm":
-    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+    llm_agents = {
+        "elevator": LLMPolicyAgent,
+        "alfworld": ALFWorldLLMPolicyAgent
+    }
+    llm_agent = llm_agents[args.env](env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
     mcts_args = cfg["llm_mcts"]["mcts_args"]
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 elif args.agent == "nn":

@@ -89,7 +89,7 @@ class ALFWorldEnvironment(gym.Wrapper):
             self.env.step(action)
 
         # Return action_history, episodic_counting_memory, obj_centric_episodic_counting_memory
-        return (self.action_history, copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
+        return (copy.deepcopy(self.action_history), copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
 
     def restore_checkpoint(self, checkpoint):
         '''
