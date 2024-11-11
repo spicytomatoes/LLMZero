@@ -150,7 +150,7 @@ class LLMPolicyAgent:
         
         messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
         
-        if os.getenv("USE_OPENAI_CUSTOM"):
+        if os.getenv("USE_OPENAI_CUSTOM") == "True":
             '''
             local API implementation
             '''

@@ -1,5 +1,6 @@
 from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
+from agents.alfworld_mcts import ALFworldMCTSAgent
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
 from agents.random_agent import RandomAgent
@@ -33,7 +34,7 @@ def get_agent(agent_name, env, args):
     elif agent_name == "mcts-llm":
         llm_agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
         mcts_args = cfg["llm_mcts"]["mcts_args"]
-        agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
+        agent = ALFworldMCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
     else:
         raise ValueError("Invalid agent")
 
