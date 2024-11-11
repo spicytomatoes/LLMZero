@@ -31,7 +31,7 @@ def get_agent(agent_name, env, args):
     elif agent_name == "mcts":
         agent = MCTSAgent(env, policy=None, debug=True)
     elif agent_name == "mcts-llm":
-        llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+        llm_agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
         mcts_args = cfg["llm_mcts"]["mcts_args"]
         agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
     else:
@@ -97,14 +97,29 @@ def main():
         torch.manual_seed(args.seed)
 
     AGENTS_TO_TEST = ['llm', 'mcts-llm']
-    for agent_name in AGENTS_TO_TEST:
-        log_file = open(f'{agent_name}_trial_logs.log', 'w')
 
-        env = ALFWorldEnvironment()
-        agent = get_agent(agent_name, env, args)
-        run_trial(env, agent, log_file)
+    FILES_TO_TEST = [
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-AlarmClock-None-Desk-307/trial_T20190907_072303_146844',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Book-None-Bed-312/trial_T20190908_103648_829231',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Bowl-None-Fridge-6/trial_T20190906_230933_751794',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Candle-None-Toilet-413/trial_T20190909_104025_525772',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-CellPhone-None-Bed-322/trial_T20190907_163932_211569',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-CreditCard-None-Shelf-316/trial_T20190909_092853_746076',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-HandTowel-None-BathtubBasin-423/trial_T20190909_044428_237048'
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-KeyChain-None-Sofa-229/trial_T20190908_123332_888981',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Laptop-None-Bed-302/trial_T20190908_112426_055221',
+        '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Pen-None-SideTable-309/trial_T20190907_051843_166835',
+    ]
 
-        log_file.close()
+    for file in FILES_TO_TEST:
+        for agent_name in AGENTS_TO_TEST:
+            log_file = open(f'{agent_name}_trial_logs.log', 'a')
+
+            env = ALFWorldEnvironment(overwrite_env=file)
+            agent = get_agent(agent_name, env, args)
+            run_trial(env, agent, log_file)
+
+            log_file.close()
 
 if __name__ == '__main__':
     main()

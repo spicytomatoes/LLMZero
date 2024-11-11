@@ -102,7 +102,7 @@ class LLMPolicyAgent:
         
         user_prompt = "**State**:\n" + state_text
         
-        messages, probs = self.query_llm(user_prompt)
+        messages, probs = self.query_llm(user_prompt, valid_actions_text)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
             
@@ -143,7 +143,7 @@ class LLMPolicyAgent:
         
         return action_probs
     
-    def query_llm(self, user_prompt):
+    def query_llm(self, user_prompt, valid_actions_text):
         if user_prompt in self.prompt_buffer:
             outputs, choice_probs = self.prompt_buffer[user_prompt]
             return outputs, choice_probs
@@ -171,7 +171,7 @@ class LLMPolicyAgent:
                 print(f"Primary response (CUSTOM): {primary_response}")
             
             # Create a distribution of possible completions
-            return_msgs = [primary_response] + [f"Optimal action: {random.choice(self.env.get_valid_actions_text())}" for i in range(self.api_params["n"] - 1)]
+            return_msgs = [primary_response] + [f"Optimal action: {random.choice(valid_actions_text)}" for i in range(self.api_params["n"] - 1)]
             logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
 
             # Apply softmax to logits to get probabilities

@@ -40,7 +40,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         **Valid Actions**: {valid_actions_text}
         '''
 
-        messages, probs = self.query_llm(user_prompt)
+        messages, probs = self.query_llm(user_prompt, valid_actions_text)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
             

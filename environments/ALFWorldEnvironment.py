@@ -12,9 +12,9 @@ class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
-    def __init__(self, config_path='configs/alfworld_env.yaml'):
+    def __init__(self, config_path='configs/alfworld_env.yaml', overwrite_env=None):
         self.config = self._load_config(config_path)
-        env = self._init_alfworld_env(self.config)
+        env = self._init_alfworld_env(self.config, overwrite_env)
 
         self.env_stack = []
         self.taskdir = ''
@@ -26,8 +26,10 @@ class ALFWorldEnvironment(gym.Wrapper):
 
         super().__init__(env)
     
-    def _init_alfworld_env(self, config):
+    def _init_alfworld_env(self, config, overwrite_env):
         env_type = config['env']['type']
+        if overwrite_env is not None:
+            config['dataset']['data_path'] = overwrite_env
         env = getattr(environment, env_type)(config, train_eval='train')
         env = env.init_env(batch_size=1) # batch_size = how many environments to run in parallel
         return env
