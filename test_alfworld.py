@@ -1,10 +1,8 @@
 from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
 import numpy as np
-from agents.llm_policy import LLMPolicyAgent
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
-from agents.nn_agent import NNAgent
 from tqdm import tqdm
 import torch
 import argparse
@@ -45,46 +43,32 @@ def log(log_file, text):
     log_file.flush()
     print(text)
 
-def run_trial(env, agent, log_file):
-    rewards = []
-    NUM_ENVIRONMENTS = 35 # Number of ALFWorld evaluation environments
-    num_failure = 0
-    num_success = 0
-    for i in range(NUM_ENVIRONMENTS):
-        log(log_file, '--------------------------------------------------')
-        num_steps = 0
-        total_reward = 0
-        max_num_steps = 40
+def run_single_trial(env, agent, log_file):
+    num_steps = 0
+    total_reward = 0
+    max_num_steps = 40
 
-        state, _ = env.reset()
-        log(log_file, state['text_state'])
-        while True:
-            action = agent.act(state)
-            print(action)
-            next_state, reward, done, _, info = env.step(action)
-            
-            total_reward += reward
-            print(f"Step {num_steps}, action: {env.action_to_text(action)}, reward: {reward}, total reward: {total_reward}")
-            
-            if done:
-                num_success += 1
-                log(log_file, f'SUCCESS, Total steps: {num_steps}, total reward: {total_reward}')
-                break
-
-            if num_steps >= max_num_steps:
-                num_failure += 1
-                print('Unable to finish task')
-                log(log_file, f'FAIL, Total steps: {num_steps}, total reward: {total_reward}')
-                break
-            
-            state = next_state
-            num_steps += 1
+    state, _ = env.reset()
+    log(log_file, state['text_state'])
+    while True:
+        action = agent.act(state)
+        print(action)
+        next_state, reward, done, _, info = env.step(action)
         
-        rewards.append(total_reward)
-
-    log(log_file, f"Average reward: {np.mean(rewards)}")
-    log(log_file, f'Num SUCCESS: {num_success}')
-    log(log_file, f'Num FAIL: {num_failure}')
+        total_reward += reward
+        print(f"Step {num_steps}, action: {env.action_to_text(action)}, reward: {reward}, total reward: {total_reward}")
+        
+        if done:
+            break
+        if num_steps >= max_num_steps:
+            print('Unable to finish task')
+            break
+        
+        state = next_state
+        num_steps += 1
+    
+    return done, num_steps, total_reward
+    
 
 
 def main():
@@ -111,15 +95,34 @@ def main():
         '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Pen-None-SideTable-309/trial_T20190907_051843_166835',
     ]
 
-    for file in FILES_TO_TEST:
-        for agent_name in AGENTS_TO_TEST:
-            log_file = open(f'{agent_name}_trial_logs.log', 'a')
+    for agent_name in AGENTS_TO_TEST:
+        log_file = open(f'{agent_name}_trial_logs.log', 'w')
+
+        rewards = []
+        num_failure = 0
+        num_success = 0
+
+        for file in FILES_TO_TEST:
+            log(log_file, '--------------------------------------------------')
 
             env = ALFWorldEnvironment(overwrite_env=file)
             agent = get_agent(agent_name, env, args)
-            run_trial(env, agent, log_file)
+            success, num_steps, total_reward = run_single_trial(env, agent, log_file)
 
-            log_file.close()
+            if success:
+                num_success += 1
+                log(log_file, f'SUCCESS, Total steps: {num_steps}, total reward: {total_reward}')
+            else:
+                num_failure += 1
+                log(log_file, f'FAIL, Total steps: {num_steps}, total reward: {total_reward}')
+        
+            rewards.append(total_reward)
+
+        log(log_file, f"Average reward: {np.mean(rewards)}")
+        log(log_file, f'Num SUCCESS: {num_success}')
+        log(log_file, f'Num FAIL: {num_failure}')
+
+        log_file.close()
 
 if __name__ == '__main__':
     main()
