@@ -1,6 +1,7 @@
 from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
 from agents.alfworld_mcts import ALFworldMCTSAgent
+from agents.alfworld_llmzero import ALFWorldLLMZeroAgent
 import numpy as np
 from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
@@ -17,6 +18,7 @@ np.random.seed(42)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run ALFworld environment")
+    parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, mcts-llm, llmzero)")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
     return parser.parse_args()
 
@@ -33,6 +35,8 @@ def get_agent(agent_name, env, args):
         llm_agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
         mcts_args = cfg["llm_mcts"]["mcts_args"]
         agent = ALFworldMCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
+    elif agent_name == "llmzero":
+        agent = ALFWorldLLMZeroAgent(env)
     else:
         raise ValueError("Invalid agent")
 
@@ -76,13 +80,7 @@ def main():
     if os.getenv("ALFWORLD_DATA") is None:
         raise Exception("Must set path in ALFWORLD_DATA environment variable to use ALFWorld Environment")
 
-    args = parse_args()
-    if args.seed is not None:
-        np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
-
-    AGENTS_TO_TEST = ['mcts-llm']
-
+    LOGS_DIR_PATH = 'logs/'
     FILES_TO_TEST = [
         '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-AlarmClock-None-Desk-307/trial_T20190907_072303_146844',
         '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Book-None-Bed-312/trial_T20190908_103648_829231',
@@ -96,34 +94,40 @@ def main():
         '$ALFWORLD_DATA/json_2.1.1/train/pick_and_place_simple-Pillow-None-ArmChair-206/trial_T20190909_011649_821132'
     ]
 
-    for agent_name in AGENTS_TO_TEST:
-        log_file = open(f'{agent_name}_trial_logs.log', 'a')
 
-        rewards = []
-        num_failure = 0
-        num_success = 0
+    args = parse_args()
+    if args.seed is not None:
+        np.random.seed(args.seed)
+        torch.manual_seed(args.seed)
+    agent_name = args.agent
 
-        for file in FILES_TO_TEST:
-            log(log_file, '--------------------------------------------------')
+    log_file = open(f'{LOGS_DIR_PATH}{agent_name}_trial_logs.log', 'a')
 
-            env = ALFWorldEnvironment(overwrite_env=file)
-            agent = get_agent(agent_name, env, args)
-            success, num_steps, total_reward = run_single_trial(env, agent, log_file)
+    rewards = []
+    num_failure = 0
+    num_success = 0
 
-            if success:
-                num_success += 1
-                log(log_file, f'SUCCESS, Total steps: {num_steps}, total reward: {total_reward}')
-            else:
-                num_failure += 1
-                log(log_file, f'FAIL, Total steps: {num_steps}, total reward: {total_reward}')
-        
-            rewards.append(total_reward)
+    for file in FILES_TO_TEST:
+        log(log_file, '--------------------------------------------------')
 
-        log(log_file, f"Average reward: {np.mean(rewards)}")
-        log(log_file, f'Num SUCCESS: {num_success}')
-        log(log_file, f'Num FAIL: {num_failure}')
+        env = ALFWorldEnvironment(overwrite_env=file)
+        agent = get_agent(agent_name, env, args)
+        success, num_steps, total_reward = run_single_trial(env, agent, log_file)
 
-        log_file.close()
+        if success:
+            num_success += 1
+            log(log_file, f'SUCCESS, Total steps: {num_steps}, total reward: {total_reward}')
+        else:
+            num_failure += 1
+            log(log_file, f'FAIL, Total steps: {num_steps}, total reward: {total_reward}')
+    
+        rewards.append(total_reward)
+
+    log(log_file, f"Average reward: {np.mean(rewards)}")
+    log(log_file, f'Num SUCCESS: {num_success}')
+    log(log_file, f'Num FAIL: {num_failure}')
+
+    log_file.close()
 
 if __name__ == '__main__':
     main()
