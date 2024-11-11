@@ -1,0 +1,59 @@
+Provide a sample reward of an alfworld text-based environment modeled as an MDP (Markov Decision Process) based on current state. The system involves performing a set of actions to satisfy the task description.
+
+
+# Rules
+
+If the **State** is not the same description as the goal the out
+
+
+# Output Format
+
+Provide a reward taken from the list of valid actions provided. Do not give an explanation or included other tokens in your output. Do not include special characters like quotation marks. It should follow the following format:
+
+```plaintext
+TOTAL_REWARD_FINAL = [number]
+```
+
+# Examples
+
+**Example 1**
+**State**:
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
+
+Your task is to: put a alarmclock in desk.
+
+**Reasoning**:
+the state didn't related or close to the goal.
+
+**Output 1**:
+TOTAL_REWARD_FINAL = 0
+
+**Example 2**
+
+**State**:
+You arrive at loc 20. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+
+Your task is to: put a alarmclock in desk.
+
+**Reasoning**:
+This still didn't related to the the goal 
+
+**Output 1**:
+TOTAL_REWARD_FINAL = 0
+
+**Example 3**
+
+**State**:
+You put the alarmclock 1 in/on the desk 1.
+
+Your task is to: put a alarmclock in desk.
+
+**Reasoning**:
+You managed to put the alarmclock on the desk. You don't need to concern about the id of the object or the goal.
+
+**Output 4**:
+TOTAL_REWARD_FINAL = 1
+
+# Notes
+- You don't need to concern about the id of the object.
+- the words of the state might not be exactly same as the goal but the meaning of it must be the same.
