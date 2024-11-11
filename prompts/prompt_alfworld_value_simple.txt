@@ -63,6 +63,23 @@ Provide only concised boxed value estimated don't need to provide any other thin
 
 # Examples
 
+# example of task and groundtruth
+
+Task: put a cellphone in desk 1
+Groundtruth: ['look', 'go to shelf 1', 'go to shelf 2', 'go to shelf 3', 'go to shelf 4', 'go to shelf 5', 'go to dresser 1', 'take cellphone 2 from dresser 1', 'go to desk 1', 'put cellphone 2 in/on desk 1']
+
+Task: put a pillow in ottoman 1
+Groundtruth: ['look', 'go to sofa 1', 'take pillow 1 from sofa 1', 'go to ottoman 1', 'put pillow 1 in/on ottoman 1']
+
+Task: put a pen in sidetable 1
+Groundtruth: ['look', 'go to sidetable 1', 'go to sidetable 2', 'go to garbagecan 1', 'take pen 3 from garbagecan 1', 'go to sidetable 1', 'put pen 3 in/on sidetable 1']
+
+Task: put a candle in dresser 1
+Groundtruth: ['look', 'go to toilet 1', 'take candle 1 from toilet 1', 'go to dresser 1', 'put candle 1 in/on dresser 1']
+
+# NOTES
+- difference task might take diffence no. of required steps or groundtruth.
+
 ### Example 1 
 *Current State*:  
 -= Welcome to TextWorld, ALFRED! =-\n\nYou are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.\n\nYour task is to: put a alarmclock in desk.
