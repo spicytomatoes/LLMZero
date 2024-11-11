@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 import datetime
 from agents.mcts import StateNode, ActionNode
-from agents.llm_policy import LLMPolicyAgent
+from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
 from utils import DictToObject, softmax
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import util as st_utils
@@ -11,6 +11,7 @@ import os
 import re
 import tqdm
 import time
+from copy import deepcopy
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -203,7 +204,7 @@ class LLMRewardModel(LLMModel):
             '''
             
             # construct user prompt
-            user_prompt = state
+            user_prompt = state['text_state'] # CHANGED
             
             response = self.query_llm(user_prompt)
             
@@ -274,7 +275,7 @@ class LLMValueModel(LLMModel):
         
         client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))            
             
-        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, "gpt-4o", debug)
+        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, llm_model, debug) # CHANGED
             
         self.extract_value_regex = env_params["extract_value_regex"]
         self.extract_value_regex_fallback = env_params["extract_value_regex_fallback"]
@@ -317,8 +318,7 @@ class LLMValueModel(LLMModel):
                 return 0, "error"
             
                  
-                
-class LLMZeroAgent:
+class ALFWorldLLMZeroAgent:
     def __init__(self, env, cfg=None, debug=False):
         
         self.env = env  # env object is only needed for the state_to_text, and get_valid_actions methods, no steps needed
@@ -327,45 +327,47 @@ class LLMZeroAgent:
             # "env": "elevator",  # TO DO: implement for alfworld
             "mcts": {
                 "num_simulations": 20,
-                "c_puct": 150,    #should be proportional to the scale of the rewards 
+                "c_puct": 100,    #should be proportional to the scale of the rewards 
                 "gamma": 0.99,
-                "max_depth": 100,   # setting this higher would have less of an effect because there is no rollout
+                "max_depth": 10,   # setting this higher would have less of an effect because there is no rollout
                 "backprop_T": 50,
             },
             "llm_policy": {
                 "env_params": {
-                    "system_prompt_path": "prompts/prompt_elevator_policy.txt",
+                    "system_prompt_path": "prompts/prompt_alfworld_policy.txt",
                     "extract_action_regex": r"optimal action: (.*)",
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_20241111_054002.pkl", # update this path to the path of the saved prompt buffer
-                "prompt_buffer_prefix": "prompt_buffer/elevator_policy",
+                "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer
+                "prompt_buffer_prefix": "prompt_buffer/alfworld_policy",
                 "save_buffer_interval": 1,
             } ,
             "llm_transition": {
                 "env_params": {
-                    "system_prompt_path": "prompts/prompt_elevator_transition.txt",
+                    "system_prompt_path": "prompts/prompt_alfworld_transition.txt",
                     "extract_state_regex": r"next state:(.*?)```",
                     "extract_state_regex_fallback": [r"next state:(.*)", r"```plaintext(.*)```", r"\*\*Next State\*\*:\n(.*)"],
+                    "extract_action_regex": r"valid actions:(.*?)```",
+                    "extract_action_regex_fallback": [r"valid actions:(.*)", r"```plaintext(.*)```", r"\*\*Valid Actions\*\*:\n(.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_20241111_054002.pkl", # update this path to the path of the saved prompt buffer   
+                "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
             },
             "llm_reward": {
                 "env_params": {
-                    "system_prompt_path": "prompts/prompt_elevator_reward.txt",
-                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (-?\d+.\d+)", # only use the first match, same line
+                    "system_prompt_path": "prompts/prompt_alfworld_reward.txt",
+                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (-?\d+)", # only use the first match, same line
                     "extract_reward_regex_fallback": [],
                     "extract_done_regex": r"done: (.*)",
                     "extract_done_regex_fallback": [r"done: (.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_20241111_054002.pkl",
+                "load_prompt_buffer_path": None,
             },
             "llm_value": {
                 "env_params": {
-                    "system_prompt_path": "prompts/prompt_elevator_value.txt",
+                    "system_prompt_path": "prompts/prompt_alfworld_value.txt",
                     "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
                     "extract_value_regex_fallback": [],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_value_20241111_054002.pkl",
+                "load_prompt_buffer_path": None,
             }
         }
         
@@ -378,25 +380,22 @@ class LLMZeroAgent:
         self.debug = debug
         
         # initialize policy
-        self.policy = LLMPolicyAgent(env, device="cuda", debug=debug, **self.cfg["llm_policy"])
-        self.transition_model = LLMTransitionModel(**self.cfg["llm_transition"], debug=debug)
+        self.policy = ALFWorldLLMPolicyAgent(env, device="cuda", debug=debug, **self.cfg["llm_policy"])
+        self.transition_model = ALFWorldLLMTransitionModel(**self.cfg["llm_transition"], debug=debug)
         self.reward_model = LLMRewardModel(**self.cfg["llm_reward"], debug=debug)
-        self.value_model = LLMValueModel(**self.cfg["llm_value"], debug=debug)
+        self.value_model = ALFWorldLLMValueModel(**self.cfg["llm_value"], debug=debug)
         
     def act(self, state):
         '''
         Run the MCTS algorithm to select the best action
         '''
         
-        state = self.env.state_to_text(state)
-        root = self.build_state(state)
+        root = self.build_state(state, [])
         
         for _ in tqdm.tqdm(range(self.args.num_simulations)):
             self.simulate(root)
             
-        best_action_text = self.select_action_node_greedily(root).action
-        
-        best_action = self.env.action_txt_to_idx(best_action_text)
+        best_action = self.select_action_node_greedily(root).action
         
         return best_action
             
@@ -408,6 +407,7 @@ class LLMZeroAgent:
         
         current_state_node = state_node
         depth = 0
+        action_history = []
         
         # Step 1: Selection, traverse down the tree until a leaf node is reached
         while not current_state_node.done and depth < self.args.max_depth:
@@ -416,9 +416,10 @@ class LLMZeroAgent:
             # obs, reward, done, _, _ = self.env.step(best_action_node.action)
             obs, _ = self.transition_model.get_next_state(current_state_node.state, best_action_node.action)
             reward, done, _ = self.reward_model.get_reward_done(current_state_node.state, best_action_node.action)
+            action_history.append(best_action_node.action)
             
             reward = reward * self.args.gamma
-            next_state_node = self.build_state(obs, reward, done, current_state_node)
+            next_state_node = self.build_state(obs, action_history, reward, done, current_state_node)
             next_state_id = next_state_node.get_unique_id()
             
             if next_state_id not in best_action_node.children.keys():
@@ -431,7 +432,7 @@ class LLMZeroAgent:
                 depth += 1
                 
         # Step 3: Get value of the leaf node using from LLM value model
-        value, _ = self.value_model.get_value(current_state_node.state)
+        value, _ = self.value_model.get_value(current_state_node.state, current_state_node.action_history)
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
@@ -452,9 +453,9 @@ class LLMZeroAgent:
         return cumulative_reward    #return not actually needed, just for debugging
             
             
-    def build_state(self, state, reward=0, done=False, parent=None):
+    def build_state(self, state, action_history, reward=0, done=False, parent=None):
         valid_actions = self.env.get_valid_actions_text(state)  # using text instead of idx
-        state_node = StateNode(state, valid_actions, reward, done, parent)
+        state_node = ALFWorldStateNode(state, valid_actions, action_history, reward, done, parent)
         if self.policy is not None:
             # print("state", state)
             distribution = self.policy.get_action_distribution(state)
@@ -530,4 +531,135 @@ class LLMZeroAgent:
                     
         return best_action
     
+
+# ---------------------------------------- CHANGED
+
+class ALFWorldStateNode(StateNode):
+    def __init__(self, state, valid_actions, action_history, reward = 0, done = False, parent=None):
+        super().__init__(state, valid_actions, reward, done, parent)
+
+        self.action_history = deepcopy(action_history)
+
+class ALFWorldLLMTransitionModel(LLMModel):
+    def __init__(self, 
+                 env_params,
+                 load_prompt_buffer_path=None,
+                 prompt_buffer_prefix="prompt_buffer/alfworld_transition",
+                 save_buffer_interval=1,
+                 llm_model='gpt-4o-mini', 
+                 debug=False):
+        
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        
+        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, llm_model, debug)
+        
+        self.extract_state_regex = env_params["extract_state_regex"]
+        self.extract_state_regex_fallback = env_params["extract_state_regex_fallback"]        
+        self.extract_action_regex = env_params["extract_action_regex"]
+        self.extract_action_regex_fallback = env_params["extract_action_regex_fallback"]
+        
+    def get_next_state(self, state: str, action: str):
+        '''
+        Get the next state given the current state and action
+        '''
+        state_text = state['text_state']
+        valid_actions_text = ', '.join(state['valid_actions'])
+        
+        # construct user prompt
+        user_prompt = "**Current State:**\n"
+        user_prompt += state_text
+        user_prompt = "**Current Valid Actions**\n"
+        user_prompt += valid_actions_text 
+        user_prompt += "\n**Action:**"
+        user_prompt += action + "\n"
+        
+        response = self.query_llm(user_prompt)
+
+        next_state, status = self.extract_state(response)
+        next_valid_actions, _ = self.extract_valid_actions(response)
+        next_state = {
+            'text_state': next_state,
+            'valid_actions': next_valid_actions,
+        }
+        
+        return next_state, status
+    
+    def extract_state(self, response: str):
+        '''
+        Extract the next state from the LLM response
+        '''
+        
+        match = re.search(self.extract_state_regex, response, re.DOTALL | re.IGNORECASE)
+        if match is not None:
+            next_state = match.group(1)
+            return next_state, "success"
+        else:
+            if self.debug:
+                print("Warning: No match found, trying fallback regex...")
+            
+            for regex in self.extract_state_regex_fallback:
+                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                if match is not None:
+                    next_state = match.group(1)
+                    return next_state, "success on fallback regex"
+            else:
+                print("Error: No match found with fallback regex, using full response as next state")
+                return response, "error"
+
+    def extract_valid_actions(self, response: str):
+        '''
+        Extract the next valid actions from the LLM response
+        '''
+        msg = ''
+        
+        match = re.search(self.extract_action_regex, response, re.DOTALL | re.IGNORECASE)
+        if match is not None:
+            next_valid_actions = match.group(1)
+            msg = "success"
+        else:
+            if self.debug:
+                print("Warning: No match found, trying fallback regex...")
+            
+            for regex in self.extract_action_regex_fallback:
+                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
+                if match is not None:
+                    next_valid_actions = match.group(2) if len(match.groups()) >= 3 else match.group(1)
+                    msg = "success on fallback regex"
+            else:
+                print("Error: No match found with fallback regex, empty array")
+                return [], "error"
+        
+        # Expect valid actions to be a comma separated list
+        try:
+            next_valid_actions = [a.strip() for a in next_valid_actions.split(',')]
+            return next_valid_actions, msg
+        except:
+            print("Error parsing valid actions, returning empty array")
+            return [], "error"
+
+
+class ALFWorldLLMValueModel(LLMValueModel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+    
+    def get_value(self, state: str, action_history: list):
+        '''
+        Get the value of the state
+        '''
+        state_text = state['text_state']
+
+        # construct user prompt
+        user_prompt = "**State:**\n"
+        user_prompt += state_text
+        user_prompt += "\n\n**Previous Actions:**\n"
+        user_prompt += str(action_history)
+        
+        response = self.query_llm(user_prompt)
+        
+        value, status = self.extract_value(response)
+        
+        return value, status
+
+# --------------------------------------
+                
     
