@@ -31,7 +31,7 @@ def get_agent(agent_name, env, args):
     elif agent_name == "mcts":
         agent = MCTSAgent(env, policy=None, debug=True)
     elif agent_name == "mcts-llm":
-        llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+        llm_agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
         mcts_args = cfg["llm_mcts"]["mcts_args"]
         agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
     else:
