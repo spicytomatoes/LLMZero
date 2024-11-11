@@ -7,6 +7,7 @@ from agents.random_agent import RandomAgent
 from agents.mcts import MCTSAgent
 from agents.elevator_expert import ElevatorExpertPolicyAgent
 from agents.nn_agent import NNAgent
+from agents.llmzero import LLMZeroAgent
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from environments.BlackjackEnvironment import BlackjackEnvironment
 from tqdm import tqdm
@@ -78,6 +79,8 @@ elif args.agent == "mcts-llm":
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 elif args.agent == "nn":
     agent = NNAgent(env, cfg=cfg["nn_agent"])
+elif args.agent == "llmzero":
+    agent = LLMZeroAgent(env)
 else:
     raise ValueError("Invalid agent")
 

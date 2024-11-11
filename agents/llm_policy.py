@@ -7,6 +7,7 @@ from sentence_transformers import util as st_utils
 import os
 import re
 import time
+import random
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -106,6 +107,7 @@ class LLMPolicyAgent:
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
             
         if self.debug:
+            print("--------------FROM LLM POLICY AGENT--------------")
             print(f"State: {state_text}")
             print(f"Action distribution: {dist}")
             
@@ -165,8 +167,11 @@ class LLMPolicyAgent:
             
             primary_response = response.choices[0].message.content  # assume single completion per call
             
+            if self.debug:
+                print(f"Primary response (CUSTOM): {primary_response}")
+            
             # Create a distribution of possible completions
-            return_msgs = [primary_response] + [f"Optimal action: {i+1}" for i in range(self.api_params["n"] - 1)]
+            return_msgs = [primary_response] + [f"Optimal action: {random.choice(self.env.get_valid_actions_text())}" for i in range(self.api_params["n"] - 1)]
             logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
 
             # Apply softmax to logits to get probabilities
@@ -198,6 +203,10 @@ class LLMPolicyAgent:
                 
             # n messages
             return_msgs = [choice.message.content for choice in response.choices]
+            
+            if self.debug:
+                print(f"return messages: {return_msgs}")
+            
             # list of logprobs objects
             choice_logprobs_list = [choice.logprobs.content for choice in response.choices]
 

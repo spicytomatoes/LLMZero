@@ -17,27 +17,29 @@ load_dotenv()
 
 from openai import OpenAI
 
-if os.getenv("USE_OPENAI_CUSTOM") == "True":
-    client = OpenAI(
-        base_url=os.getenv("CUSTOM_BASE_URL"),
-        api_key=os.getenv("CUSTOM_API_KEY")
-    )
-else:
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# if os.getenv("USE_OPENAI_CUSTOM") == "True":
+#     client = OpenAI(
+#         base_url=os.getenv("CUSTOM_BASE_URL"),
+#         api_key=os.getenv("CUSTOM_API_KEY")
+#     )
+# else:
+#     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
    
 class LLMModel: 
         def __init__(self, 
                  env_params,
                  load_prompt_buffer_path=None,
                  prompt_buffer_prefix="prompt_buffer/elevator_reward",
-                 save_buffer_interval=10,
+                 save_buffer_interval=1,
+                 client=None,
                  llm_model='gpt-4o-mini', 
                  debug=False):
             
             self.env_params = env_params
             
             self.system_prompt = open(self.env_params["system_prompt_path"], "r").read()
-            self.llm_model =  os.getenv("CUSTOM_MODEL_ID") if os.getenv("USE_OPENAI_CUSTOM") == "True" else llm_model
+            self.client = client
+            self.llm_model =  llm_model
             self.debug = debug
             
             self.prompt_buffer = {}
@@ -75,7 +77,7 @@ class LLMModel:
             
             while True:
                 try:
-                    response = client.chat.completions.create(model=self.llm_model, messages=messages)
+                    response = self.client.chat.completions.create(model=self.llm_model, messages=messages)
                     break
                 except Exception as e:
                     print(f"Error calling API: {e}, retrying...")
@@ -118,11 +120,16 @@ class LLMTransitionModel(LLMModel):
                  env_params,
                  load_prompt_buffer_path=None,
                  prompt_buffer_prefix="prompt_buffer/elevator_transition",
-                 save_buffer_interval=10,
+                 save_buffer_interval=1,
                  llm_model='gpt-4o-mini', 
                  debug=False):
         
-        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug) 
+        client = OpenAI(
+            base_url=os.getenv("CUSTOM_BASE_URL"),
+            api_key=os.getenv("CUSTOM_API_KEY")
+        )
+        
+        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, 'open-mixtral-8x22b', debug) 
         
         self.extract_state_regex = env_params["extract_state_regex"]
         self.extract_state_regex_fallback = env_params["extract_state_regex_fallback"]        
@@ -171,11 +178,19 @@ class LLMRewardModel(LLMModel):
                  env_params,
                  load_prompt_buffer_path=None,
                  prompt_buffer_prefix="prompt_buffer/elevator_reward",
-                 save_buffer_interval=10,
+                 save_buffer_interval=1,
                  llm_model='gpt-4o-mini', 
                  debug=False):
             
-            super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
+            # client = OpenAI(
+            #     base_url=os.getenv("CUSTOM_BASE_URL"),
+            #     api_key=os.getenv("CUSTOM_API_KEY")
+            # )
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            
+            llm_model = 'gpt-4o-mini'
+            
+            super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, llm_model, debug)
             
             self.reward_regex = env_params["extract_reward_regex"]
             self.reward_regex_fallback = env_params["extract_reward_regex_fallback"]
@@ -253,11 +268,16 @@ class LLMValueModel(LLMModel):
                     env_params,
                     load_prompt_buffer_path=None,
                     prompt_buffer_prefix="prompt_buffer/elevator_value",
-                    save_buffer_interval=10,
+                    save_buffer_interval=1,
                     llm_model='gpt-4o-mini',
                     debug=False):
+        
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))            
             
-            super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, llm_model, debug)
+        super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, "gpt-4o", debug)
+            
+        self.extract_value_regex = env_params["extract_value_regex"]
+        self.extract_value_regex_fallback = env_params["extract_value_regex_fallback"]
             
     def get_value(self, state: str):
         '''
@@ -282,7 +302,7 @@ class LLMValueModel(LLMModel):
         match = re.search(self.extract_value_regex, response, re.DOTALL | re.IGNORECASE)
         if match is not None:
             value = match.group(1)
-            return value, "success"
+            return float(value), "success"
         else:
             if self.debug:
                 print("Warning: No match found, trying fallback regex...")
@@ -291,10 +311,10 @@ class LLMValueModel(LLMModel):
                 match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
                 if match is not None:
                     value = match.group(1)
-                    return value, "success on fallback regex"
+                    return float(value), "success on fallback regex"
             else:
-                print("Error: No match found with fallback regex, using full response as value")
-                return response, "error"
+                print("Error: No match found with fallback regex, using 0 as value")
+                return 0, "error"
             
                  
                 
@@ -304,11 +324,11 @@ class LLMZeroAgent:
         self.env = env  # env object is only needed for the state_to_text, and get_valid_actions methods, no steps needed
         
         self.cfg = {
-            "env": "elevator",  # TO DO: implement for alfworld
+            # "env": "elevator",  # TO DO: implement for alfworld
             "mcts": {
-                "num_simulations": 40,
-                "c_puct": 500,    #should be proportional to the scale of the rewards 
-                "gamma": 0.95,
+                "num_simulations": 20,
+                "c_puct": 150,    #should be proportional to the scale of the rewards 
+                "gamma": 0.99,
                 "max_depth": 100,   # setting this higher would have less of an effect because there is no rollout
                 "backprop_T": 50,
             },
@@ -317,33 +337,35 @@ class LLMZeroAgent:
                     "system_prompt_path": "prompts/prompt_elevator_policy.txt",
                     "extract_action_regex": r"optimal action: (.*)",
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_20241107_065530.pkl", # update this path to the path of the saved prompt buffer
+                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_20241111_054002.pkl", # update this path to the path of the saved prompt buffer
                 "prompt_buffer_prefix": "prompt_buffer/elevator_policy",
-                "save_buffer_interval": 10,
+                "save_buffer_interval": 1,
             } ,
             "llm_transition": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_elevator_transition.txt",
                     "extract_state_regex": r"next state:(.*?)```",
-                    "extract_state_regex_fallback": [r"next state:(.*)"],
+                    "extract_state_regex_fallback": [r"next state:(.*)", r"```plaintext(.*)```", r"\*\*Next State\*\*:\n(.*)"],
                 },
-                "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
+                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_20241111_054002.pkl", # update this path to the path of the saved prompt buffer   
             },
             "llm_reward": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_elevator_reward.txt",
-                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (.*)\n", # only use the first match, same line
-                    "extract_reward_regex_fallback": [r"TOTAL_REWARD_FINAL = (.*)\n"],
+                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (-?\d+.\d+)", # only use the first match, same line
+                    "extract_reward_regex_fallback": [],
                     "extract_done_regex": r"done: (.*)",
                     "extract_done_regex_fallback": [r"done: (.*)"],
-                }
+                },
+                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_20241111_054002.pkl",
             },
             "llm_value": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_elevator_value.txt",
-                    "extract_value_regex": r"value: (.*)",
-                    "extract_value_regex_fallback": [r"value: (.*)"],
-                }
+                    "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
+                    "extract_value_regex_fallback": [],
+                },
+                "load_prompt_buffer_path": "prompt_buffer/elevator_value_20241111_054002.pkl",
             }
         }
         
@@ -356,10 +378,10 @@ class LLMZeroAgent:
         self.debug = debug
         
         # initialize policy
-        self.policy = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
-        self.transition_model = LLMTransitionModel(**cfg["llm_transition"])
-        self.reward_model = LLMRewardModel(**cfg["llm_reward"])
-        self.value_model = LLMValueModel(**cfg["llm_value"])
+        self.policy = LLMPolicyAgent(env, device="cuda", debug=debug, **self.cfg["llm_policy"])
+        self.transition_model = LLMTransitionModel(**self.cfg["llm_transition"], debug=debug)
+        self.reward_model = LLMRewardModel(**self.cfg["llm_reward"], debug=debug)
+        self.value_model = LLMValueModel(**self.cfg["llm_value"], debug=debug)
         
     def act(self, state):
         '''
@@ -392,7 +414,7 @@ class LLMZeroAgent:
             
             best_action_node = self.select_action_node(state_node)
             # obs, reward, done, _, _ = self.env.step(best_action_node.action)
-            obs = self.transition_model.get_next_state(current_state_node.state, best_action_node.action)
+            obs, _ = self.transition_model.get_next_state(current_state_node.state, best_action_node.action)
             reward, done, _ = self.reward_model.get_reward_done(current_state_node.state, best_action_node.action)
             
             reward = reward * self.args.gamma
@@ -409,7 +431,7 @@ class LLMZeroAgent:
                 depth += 1
                 
         # Step 3: Get value of the leaf node using from LLM value model
-        value = self.value_model.get_value(current_state_node.state)
+        value, _ = self.value_model.get_value(current_state_node.state)
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
@@ -420,6 +442,7 @@ class LLMZeroAgent:
             # current_action_node.Q += (cumulative_reward - current_action_node.Q) / current_action_node.N
             current_action_node.Rs.append(cumulative_reward)
             # softmax to prioritize actions with higher rewards
+            print("current_action_node.Rs", current_action_node.Rs)
             best_action_node.Q = np.sum(np.array(best_action_node.Rs) * softmax(best_action_node.Rs, T=self.args.backprop_T))
             current_state_node = current_action_node.parent
             current_state_node.N += 1
@@ -433,6 +456,7 @@ class LLMZeroAgent:
         valid_actions = self.env.get_valid_actions_text(state)  # using text instead of idx
         state_node = StateNode(state, valid_actions, reward, done, parent)
         if self.policy is not None:
+            # print("state", state)
             distribution = self.policy.get_action_distribution(state)
             if isinstance(distribution, dict):
                 distribution = list(distribution.values())
