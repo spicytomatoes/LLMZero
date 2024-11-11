@@ -26,7 +26,7 @@ class ALFWorldEnvironment(gym.Wrapper):
 
         super().__init__(env)
     
-    def _init_alfworld_env(self, config, overwrite_env):
+    def _init_alfworld_env(self, config, overwrite_env=None):
         env_type = config['env']['type']
         if overwrite_env is not None:
             config['dataset']['data_path'] = overwrite_env

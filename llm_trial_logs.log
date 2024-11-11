@@ -2,248 +2,73 @@
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a coffeetable 1, a diningtable 2, a diningtable 1, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 2, a sidetable 1, a sofa 1, and a tvstand 1.
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
 
-Your task is to: put some bowl on coffeetable.
-FAIL, Total steps: 40, total reward: -19.53333333333333
+Your task is to: put a alarmclock in desk.
+SUCCESS, Total steps: 4, total reward: 99.65681818181818
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
-You are in the middle of a room. Looking quickly around you, you see a bed 1, a diningtable 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, and a sidetable 1.
 
-Your task is to: put some book on sidetable.
-FAIL, Total steps: 40, total reward: -19.9
+Your task is to: put a book in bed.
+FAIL, Total steps: 40, total reward: -18.65
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a bed 2, a bed 1, a cabinet 1, a desk 2, a desk 1, a drawer 13, a drawer 12, a drawer 11, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 2, a dresser 1, and a garbagecan 1.
+You are in the middle of a room. Looking quickly around you, you see a cabinet 15, a cabinet 14, a cabinet 13, a cabinet 12, a cabinet 11, a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 4, a countertop 3, a countertop 2, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
 
-Your task is to: put a cellphone in armchair.
-FAIL, Total steps: 40, total reward: -19.84
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bed 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 1, and a sidetable 1.
-
-Your task is to: put some pencil on desk.
-SUCCESS, Total steps: 5, total reward: 98.88181818181819
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a coffeetable 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 3, a sidetable 2, a sidetable 1, and a sofa 1.
-
-Your task is to: put a book in sofa.
-FAIL, Total steps: 40, total reward: -19.54
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 26, a cabinet 25, a cabinet 24, a cabinet 23, a cabinet 22, a cabinet 21, a cabinet 20, a cabinet 19, a cabinet 18, a cabinet 17, a cabinet 16, a cabinet 15, a cabinet 14, a cabinet 13, a cabinet 12, a cabinet 11, a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 3, a countertop 2, a countertop 1, a drawer 12, a drawer 11, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
-
-Your task is to: put some tomato on microwave.
-FAIL, Total steps: 40, total reward: -20.0
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put some spraybottle on toilet.
-FAIL, Total steps: 40, total reward: -18.6
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a garbagecan 1, a handtowelholder 1, a shelf 3, a shelf 2, a shelf 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put some candle on toilet.
-SUCCESS, Total steps: 3, total reward: 99.59333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a shelf 2, a shelf 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put some spraybottle on toilet.
-SUCCESS, Total steps: 5, total reward: 99.12
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cart 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, a towelholder 2, and a towelholder 1.
-
-Your task is to: put a candle in cart.
-FAIL, Total steps: 40, total reward: -19.85
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a cabinet 1, a drawer 21, a drawer 20, a drawer 19, a drawer 18, a drawer 17, a drawer 16, a drawer 15, a drawer 14, a drawer 13, a drawer 12, a drawer 11, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 5, a sidetable 4, a sidetable 3, a sidetable 2, a sidetable 1, and a sofa 1.
-
-Your task is to: put some box on dresser.
-FAIL, Total steps: 40, total reward: -19.822222222222223
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bed 1, a diningtable 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
-
-Your task is to: put a mug in sidetable.
-FAIL, Total steps: 40, total reward: -19.4
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a coffeetable 2, a coffeetable 1, a diningtable 1, a garbagecan 1, a sidetable 2, a sidetable 1, and a sofa 1.
-
-Your task is to: put some remotecontrol on armchair.
-FAIL, Total steps: 40, total reward: -19.133333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a cabinet 1, a drawer 21, a drawer 20, a drawer 19, a drawer 18, a drawer 17, a drawer 16, a drawer 15, a drawer 14, a drawer 13, a drawer 12, a drawer 11, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 5, a sidetable 4, a sidetable 3, a sidetable 2, a sidetable 1, and a sofa 1.
-
-Your task is to: put a newspaper in sofa.
-FAIL, Total steps: 40, total reward: -19.625
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bed 1, a diningtable 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
-
-Your task is to: put some mug on sidetable.
-FAIL, Total steps: 40, total reward: -19.84
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bed 1, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, and a shelf 1.
-
-Your task is to: put some cellphone on bed.
-FAIL, Total steps: 40, total reward: -19.866666666666667
+Your task is to: put some bowl on fridge.
+FAIL, Total steps: 40, total reward: -18.29714285714286
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
 You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
 
-Your task is to: put a spraybottle in cabinet.
-FAIL, Total steps: 40, total reward: -18.633333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a countertop 1, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, a towelholder 2, and a towelholder 1.
-
-Your task is to: put a spraybottle in garbagecan.
-FAIL, Total steps: 40, total reward: -18.75
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put a toiletpaper in toiletpaperhanger.
-FAIL, Total steps: 40, total reward: -19.15714285714286
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cart 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, a towelholder 2, and a towelholder 1.
-
-Your task is to: put a soapbar in cart.
-FAIL, Total steps: 40, total reward: -18.873333333333335
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a bed 1, a drawer 16, a drawer 15, a drawer 14, a drawer 13, a drawer 12, a drawer 11, a drawer 10, a drawer 9, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 2, a dresser 1, a garbagecan 1, a shelf 2, a shelf 1, a sidetable 2, and a sidetable 1.
-
-Your task is to: put some pencil on dresser.
-FAIL, Total steps: 40, total reward: -19.5
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 13, a cabinet 12, a cabinet 11, a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 2, a countertop 1, a diningtable 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a shelf 3, a shelf 2, a shelf 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
-
-Your task is to: put some winebottle on shelf.
-FAIL, Total steps: 40, total reward: -19.55
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 1, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sidetable 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
-
-Your task is to: put a knife in sidetable.
-FAIL, Total steps: 40, total reward: -19.5
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a bed 1, a countertop 1, a diningtable 1, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a laundryhamper 1, and a sidetable 1.
-
-Your task is to: put some mug on dresser.
-FAIL, Total steps: 40, total reward: -19.773333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 2, a countertop 1, a drawer 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put some soapbottle on cabinet.
-SUCCESS, Total steps: 7, total reward: 98.59333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a handtowelholder 2, a handtowelholder 1, a shelf 2, a shelf 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put a toiletpaper in toiletpaperhanger.
-FAIL, Total steps: 40, total reward: -18.633333333333333
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 3, a countertop 2, a countertop 1, a diningtable 1, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
-
-Your task is to: put some egg on microwave.
-FAIL, Total steps: 40, total reward: -18.85
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a coffeetable 2, a coffeetable 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sofa 1, and a tvstand 1.
-
-Your task is to: put a vase in coffeetable.
-SUCCESS, Total steps: 5, total reward: 99.24333333333334
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeetable 2, a coffeetable 1, a diningtable 1, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a shelf 13, a shelf 12, a shelf 11, a shelf 10, a shelf 9, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, and a sofa 1.
-
-Your task is to: put some creditcard on drawer.
-FAIL, Total steps: 40, total reward: -19.1
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
-Your task is to: put a soapbottle in countertop.
-FAIL, Total steps: 40, total reward: -18.946666666666665
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a coffeetable 1, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 3, a sidetable 2, a sidetable 1, a sofa 2, a sofa 1, and a tvstand 1.
-
-Your task is to: put some watch on sidetable.
-FAIL, Total steps: 40, total reward: -19.866666666666667
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a coffeetable 1, a diningtable 2, a diningtable 1, a drawer 2, a drawer 1, a garbagecan 1, a sidetable 2, a sidetable 1, a sofa 1, and a tvstand 1.
-
-Your task is to: put some creditcard on armchair.
-FAIL, Total steps: 40, total reward: -19.866666666666667
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a countertop 1, a drawer 8, a drawer 7, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, a towelholder 2, and a towelholder 1.
-
-Your task is to: put some tissuebox on toilet.
-FAIL, Total steps: 40, total reward: -19.85
---------------------------------------------------
--= Welcome to TextWorld, ALFRED! =-
-
-You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
-
 Your task is to: put a candle in toilet.
-FAIL, Total steps: 40, total reward: -19.03333333333333
+SUCCESS, Total steps: 6, total reward: 98.8
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
-You are in the middle of a room. Looking quickly around you, you see a armchair 2, a armchair 1, a coffeetable 2, a coffeetable 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sofa 1, and a tvstand 1.
+You are in the middle of a room. Looking quickly around you, you see a armchair 1, a bed 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
 
-Your task is to: put some remotecontrol on sofa.
-FAIL, Total steps: 40, total reward: -19.14
-Average reward: -2.4726441970727677
-Num SUCCESS: 5
-Num FAIL: 30
+Your task is to: put a cellphone in bed.
+FAIL, Total steps: 40, total reward: -19.268571428571427
+--------------------------------------------------
+-= Welcome to TextWorld, ALFRED! =-
+
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 1, and a sidetable 1.
+
+Your task is to: put a creditcard in shelf.
+FAIL, Total steps: 40, total reward: -19.29
+--------------------------------------------------
+-= Welcome to TextWorld, ALFRED! =-
+
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a safe 1, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sidetable 2, and a sidetable 1.
+
+Your task is to: put a laptop in bed.
+SUCCESS, Total steps: 4, total reward: 99.63333333333334
+--------------------------------------------------
+-= Welcome to TextWorld, ALFRED! =-
+
+You are in the middle of a room. Looking quickly around you, you see a armchair 3, a armchair 2, a armchair 1, a bed 1, a cabinet 2, a cabinet 1, a desk 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a safe 1, and a sidetable 1.
+
+Your task is to: put a pen in sidetable.
+FAIL, Total steps: 40, total reward: -18.740000000000002
+--------------------------------------------------
+-= Welcome to TextWorld, ALFRED! =-
+
+You are in the middle of a room. Looking quickly around you, you see a armchair 1, a bed 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
+
+Your task is to: put a pencil in sidetable.
+FAIL, Total steps: 40, total reward: -18.883333333333333
+--------------------------------------------------
+-= Welcome to TextWorld, ALFRED! =-
+
+You are in the middle of a room. Looking quickly around you, you see a armchair 1, a coffeetable 1, a garbagecan 1, a shelf 14, a shelf 13, a shelf 12, a shelf 11, a shelf 10, a shelf 9, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sofa 1, a tvstand 2, and a tvstand 1.
+
+Your task is to: put a pillow in armchair.
+FAIL, Total steps: 40, total reward: -18.96666666666667
+Average reward: 16.599443722943725
+Num SUCCESS: 3
+Num FAIL: 7

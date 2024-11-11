@@ -18,13 +18,8 @@ llm_mcts:
   temp: 10.0
 
   mcts_args:
-    num_simulations: 100
+    num_simulations: 20
     c_puct: 100
     gamma: 0.9
     max_depth: 10
-
-mcts:
-  num_simulations: 100
-  c_puct: 100
-  gamma: 0.9
-  max_depth: 10
+    num_rollouts: 10
