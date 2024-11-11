@@ -47,7 +47,7 @@ def log(log_file, text):
 
 def run_trial(env, agent, log_file):
     rewards = []
-    NUM_ENVIRONMENTS = 35 # Number of ALFWorld evaluation environments
+    NUM_ENVIRONMENTS = 1 # Number of ALFWorld evaluation environments
     num_failure = 0
     num_success = 0
     for i in range(NUM_ENVIRONMENTS):
@@ -96,7 +96,7 @@ def main():
         np.random.seed(args.seed)
         torch.manual_seed(args.seed)
 
-    AGENTS_TO_TEST = ['llm', 'mcts-llm']
+    AGENTS_TO_TEST = ['mcts-llm']
     for agent_name in AGENTS_TO_TEST:
         log_file = open(f'{agent_name}_trial_logs.log', 'w')
 
