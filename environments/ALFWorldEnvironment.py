@@ -98,6 +98,7 @@ class ALFWorldEnvironment(gym.Wrapper):
         restore the environment to a previous state
         '''
         # Set environment to previous
+        self.env.close()
         self.env = self.env_stack.pop()
 
         self.action_history, self.episodic_counting_memory, self.obj_centric_episodic_counting_memory = checkpoint
