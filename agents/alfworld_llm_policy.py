@@ -11,7 +11,8 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
                  api_params=None,
                  load_prompt_buffer_path=None,
                  prompt_buffer_prefix="prompt_buffer/alfworld",
-                 save_buffer_interval=100,
+                 save_buffer_interval=1,
+                 overwrite_prompt_buffer=False,
                  debug=False,
                  temp=1.0   #smoothing factor for action distribution
                 ):
@@ -23,6 +24,9 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
             custom_env_params.update(env_params)
 
         super().__init__(env, device, llm_model, custom_env_params, api_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, debug, temp)
+
+        if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
+            self.prompt_buffer_save_path = load_prompt_buffer_path
 
     def act(self, state, greedy=True):
         int_action = super().act(state, greedy)
@@ -40,7 +44,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         **Valid Actions**: {valid_actions_text}
         '''
 
-        messages, probs = self.query_llm(user_prompt)
+        messages, probs = self.query_llm(user_prompt, valid_actions_text)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
             

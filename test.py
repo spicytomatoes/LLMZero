@@ -1,5 +1,3 @@
-from agents.alfworld_llm_policy import ALFWorldLLMPolicyAgent
-# from environments.ALFWorldEnvironment import ALFWorldEnvironment
 from pyRDDLGym.Elevator import Elevator
 import numpy as np
 from agents.llm_policy import LLMPolicyAgent
@@ -16,7 +14,6 @@ import argparse
 import yaml
 import os
 
-ALFWorldEnvironment = None
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -25,7 +22,7 @@ np.random.seed(42)
 def parse_args():
     parser = argparse.ArgumentParser(description="Run elevator environment")
     parser.add_argument("--agent", type=str, default="llm", help="Agent to run (llm, random, mcts, expert, mcts-expert, mcts-llm, nn)")
-    parser.add_argument("--env", type=str, default="elevator", help="Environment to run (elevator, blackjack, alfworld)")
+    parser.add_argument("--env", type=str, default="elevator", help="Environment to run (elevator, blackjack)")
     parser.add_argument("--seed", type=int, default=None, help="Random seed")
     parser.add_argument("--num_episodes", type=int, default=1, help="Number of episodes to run")
     return parser.parse_args()
@@ -42,12 +39,6 @@ elif args.env == "blackjack":
     env = BlackjackEnvironment()
     cfg = yaml.safe_load(open("configs/blackjack.yaml"))
 
-elif args.env == "alfworld":
-    if os.getenv("ALFWORLD_DATA") is None:
-        raise Exception("Must set path in ALFWORLD_DATA environment variable to use ALFWorld Environment")
-
-    env = ALFWorldEnvironment()
-    cfg = yaml.safe_load(open("configs/alfworld.yaml"))
 else:
     raise Exception("Invalid environment selected.")
 
@@ -55,12 +46,7 @@ else:
 agent = None
 
 if args.agent == "llm":
-    llm_agents = {
-        "elevator": LLMPolicyAgent,
-        "blackjack": LLMPolicyAgent,
-        "alfworld": ALFWorldLLMPolicyAgent
-    }
-    agent = llm_agents[args.env](env, device="cuda", debug=False, **cfg["llm_policy"])
+    agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
 elif args.agent == "random":
     agent = RandomAgent(env, seed = args.seed)
 elif args.agent == "mcts":

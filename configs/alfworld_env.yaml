@@ -42,7 +42,7 @@ general:
   use_cuda: False                                               # disable this when running on machine without cuda
   visdom: False                                                # plot training/eval curves, run with visdom server
   task: 'alfred'
-  training_method: 'dqn'                                       # 'dqn' or 'dagger'
+  training_method: 'dagger'                                    # 'dqn' or 'dagger'
   save_path: './training/'                                     # path to save pytorch models
   observation_pool_capacity: 3                                 # k-size queue, 0 indicates no observation
   hide_init_receptacles: False                                 # remove initial observation containing navigable receptacles

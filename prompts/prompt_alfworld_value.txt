@@ -1,0 +1,164 @@
+Provide an estimated value of a state in a household modeled as a POMDP (Partially Observable Markov Decision Process).
+
+# State Representation
+
+The household environment is made up of two types of entities:
+1. *Objects*: These are common household items. These objects can be picked up or put down. (ex. book, pen, cd, alarmclock)
+2. *Receptacles*: These are household furniture that are treated as locations which agents can visit. They contain objects either on top or inside of them. (ex. armchair, desk, drawer, shelf)
+
+Here are additional characteristics of these entities:
+- There may be multiple copies of receptacles or objects. To differentiate them, a number is added to each item regardless of if it has multiple copies or not. (ex. armchair 1, drawer 1, drawer 2, book 1, pen 1, pen 2, pen 3)
+- Objects may be visible or hidden in receptacles. Visible objects are observed by the agent upon visiting the location. Hidden objects can only be observed after performing an action on the receptacle.
+- There are receptacles that are also treated as objects. They can be picked up or placed down. However, they can also contain items inside of them. (ex. vase)
+
+Agents in the household do not have complete knowledge of the house's layout. Instead, they are only able to observe receptacles and objects within their proximity.
+
+Here are the only valid formats for states. Note you are meant to replace words surrounded by curly brackets ({}) by the specific name of entities.
+- You arrive at {receptacle}. On the {receptacle}, you see {objects}.
+- You arrive at {receptacle}. On the {receptacle}, you see nothing.
+- You arrive at {receptacle}. The {receptacle} is closed.
+- You arrive at {receptacle}. The {receptacle} is open. In it, you see {objects}.
+- You arrive at {receptacle}. The {receptacle} is open. In it, you see nothing.
+- You open the {receptacle}. The {receptacle} is open. In it, you see {objects}.
+- You open the {receptacle}. The {receptacle} is open. In it, you see nothing.
+- You close the {receptacle}.
+- You pick up the {object} from the {name}.
+- You pick up the {object}.
+- You put the {object} in/on the {receptacle}.
+- You put the {object} in the {receptacle}.
+- On the {receptacle}, you see {objects}.
+- You are carrying: {objects}.
+- You are not carrying anything.
+- You are in the middle of a room. Looking quickly around you, you see {receptacles}.
+- You are facing the {receptacle}. On the {receptacle}, you see {objects}.
+- Nothing happens.
+
+All of these state formats will have the goal appended at the end of it in the format below. Note that {goal} is a placedholder and should be replaced by the current goal. This can be found in the previous state given.
+
+Your task is to: {goal}
+
+# Replacing Receptacles and States
+
+For the valid states under State Representation, you are meant to replace the {receptacle} and {object} markers 
+
+# Steps to Estimate the Value of A State
+
+1. you will need to estimated no. of steps that the entire tasks should required. the ground truth of the steps will only be given in this system prompt.
+2. you will have to used your estimated no. of steps to see how far from the goal from the given state.
+3. you will have to estimated the valued of that state comparing between the estimated no. of steps.
+4. you will also given the previous action that would help you to estimated the value also.
+5. you will should referred to the given equation which you can used as a core to calculate the estimated value.
+6. your estimated steps need won't include the previous action.
+7. the number of step for gorundtruth is varying between each task
+
+*Calculations* 
+
+VALUE_ESTIMATED = 1 - no. of estimated steps need to reached the goal * 0.01
+
+# Output Format
+Provide only concised boxed value estimated don't need to provide any other things.
+\[
+\boxed{VALUE_ESTIMATED}
+\]
+
+# Examples
+
+# example of task and groundtruth
+
+Task: put a cellphone in desk 1
+Groundtruth: ['look', 'go to shelf 1', 'go to shelf 2', 'go to shelf 3', 'go to shelf 4', 'go to shelf 5', 'go to dresser 1', 'take cellphone 2 from dresser 1', 'go to desk 1', 'put cellphone 2 in/on desk 1']
+
+Task: put a pillow in ottoman 1
+Groundtruth: ['look', 'go to sofa 1', 'take pillow 1 from sofa 1', 'go to ottoman 1', 'put pillow 1 in/on ottoman 1']
+
+Task: put a pen in sidetable 1
+Groundtruth: ['look', 'go to sidetable 1', 'go to sidetable 2', 'go to garbagecan 1', 'take pen 3 from garbagecan 1', 'go to sidetable 1', 'put pen 3 in/on sidetable 1']
+
+Task: put a candle in dresser 1
+Groundtruth: ['look', 'go to toilet 1', 'take candle 1 from toilet 1', 'go to dresser 1', 'put candle 1 in/on dresser 1']
+
+# NOTES
+- difference task might take diffence no. of required steps or groundtruth.
+
+### Example 1 
+*Current State*:  
+-= Welcome to TextWorld, ALFRED! =-\n\nYou are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.\n\nYour task is to: put a alarmclock in desk.
+
+*previous action*: []
+
+*Ground Truth*:
+['look', 'go to sidetable 1', 'take alarmclock 1 from sidetable 1', 'go to desk 1', 'put alarmclock 1 in/on desk 1']
+
+*Reason*
+1. most of the pick and place task would consisting of same pattern of action consisting of look, go to the location, take object from location, go to goal location, put obj in/on that location.
+2. You didn't take any step yet as stated in the previous action list so the step estimated should be equal to the groundtruth trajectory
+
+*Calculation example
+VALUE_ESTIMATED = 1 - no. of estimated steps need to reached the goal * 0.1 = 1 - 5 * 0.01 = 0.95
+
+*Output*:
+\[
+\boxed{VALUE_ESTIMATED}
+\]
+
+### Example 2
+*Current State*:  
+You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.\n\nYour task is to: put a alarmclock in desk.
+
+*previous action*: [go to sidetable 1]
+
+*Ground Truth*:
+['look', 'go to sidetable 1', 'take alarmclock 1 from sidetable 1', 'go to desk 1', 'put alarmclock 1 in/on desk 1']
+
+*Reason*
+1. most of the pick and place task would consisting of same pattern of action consisting of look, go to the location, take object from location, go to goal location, put obj in/on that location.
+2. You take one step and it help you reach toward the goal
+3. From the previous action list you already estimated that you might only need 3 step to reached the goal
+4. You also estimated htat
+
+*Calculation example
+VALUE_ESTIMATED = 1 - no. of estimated steps need to reached the goal * 0.01 = 1 - 4 * 0.01 = 0.96
+
+*Output*:
+\[
+\boxed{VALUE_ESTIMATED}
+\]
+
+### Example 3
+*Current State*:  
+You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.\n\nYour task is to: put a alarmclock in desk.
+
+*previous action*: [go to sidetable 1,take alarmclock 1 from sidetable 1]
+
+*Ground Truth*:
+['go to desk 1', 'put alarmclock 1 in/on desk 1']
+
+*Reason*
+1. most of the pick and place task would consisting of same pattern of action consisting of look, go to the location, take object from location, go to goal location, put obj in/on that location.
+2. You take one step and it help you reach toward the goal
+3. From the previous action list you already estimated that you might only need 3 step to reached the goal
+4. You also estimated htat
+
+*Calculation example
+VALUE_ESTIMATED = 1 - no. of estimated steps need to reached the goal * 0.01 = 1 - 3 * 0.01 = 0.97
+
+*Output*:
+\[
+\boxed{VALUE_ESTIMATED}
+\]
+
+### Example 4
+**State**:
+You put the alarmclock 1 in/on the desk 1.
+
+Your task is to: put a alarmclock in desk.
+
+*previous action*: [go to sidetable 1,take alarmclock 1 from sidetable 1, go to desk 1, put alramclock 1 in/on the desk 1]
+
+*Calculation example
+VALUE_ESTIMATED = 1 - no. of estimated steps need to reached the goal * 0.01 = 1 - 0 * 0.01 = 1
+
+*Output*:
+\[
+\boxed{VALUE_ESTIMATED}
+\]

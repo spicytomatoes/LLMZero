@@ -102,7 +102,7 @@ class LLMPolicyAgent:
         
         user_prompt = "**State**:\n" + state_text
         
-        messages, probs = self.query_llm(user_prompt)
+        messages, probs = self.query_llm(user_prompt, valid_actions_text)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
         
@@ -145,14 +145,14 @@ class LLMPolicyAgent:
         
         return action_probs
     
-    def query_llm(self, user_prompt):
+    def query_llm(self, user_prompt, valid_actions_text):
         if user_prompt in self.prompt_buffer:
             outputs, choice_probs = self.prompt_buffer[user_prompt]
             return outputs, choice_probs
         
         messages = [{"role": "system", "content": self.system_prompt}, {"role": "user", "content": user_prompt}]
         
-        if os.getenv("USE_OPENAI_CUSTOM"):
+        if os.getenv("USE_OPENAI_CUSTOM") == "True":
             '''
             local API implementation
             '''

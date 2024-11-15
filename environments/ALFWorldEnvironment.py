@@ -12,9 +12,9 @@ class ALFWorldEnvironment(gym.Wrapper):
     '''
     wrapper for ALFWorld environment
     '''
-    def __init__(self, config_path='configs/alfworld_env.yaml'):
+    def __init__(self, config_path='configs/alfworld_env.yaml', overwrite_env=None):
         self.config = self._load_config(config_path)
-        env = self._init_alfworld_env(self.config)
+        env = self._init_alfworld_env(self.config, overwrite_env)
 
         self.env_stack = []
         self.taskdir = ''
@@ -26,8 +26,10 @@ class ALFWorldEnvironment(gym.Wrapper):
 
         super().__init__(env)
     
-    def _init_alfworld_env(self, config):
+    def _init_alfworld_env(self, config, overwrite_env=None):
         env_type = config['env']['type']
+        if overwrite_env is not None:
+            config['dataset']['data_path'] = overwrite_env
         env = getattr(environment, env_type)(config, train_eval='train')
         env = env.init_env(batch_size=1) # batch_size = how many environments to run in parallel
         return env
@@ -89,13 +91,14 @@ class ALFWorldEnvironment(gym.Wrapper):
             self.env.step(action)
 
         # Return action_history, episodic_counting_memory, obj_centric_episodic_counting_memory
-        return (self.action_history, copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
+        return (copy.deepcopy(self.action_history), copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
 
     def restore_checkpoint(self, checkpoint):
         '''
         restore the environment to a previous state
         '''
         # Set environment to previous
+        self.env.close()
         self.env = self.env_stack.pop()
 
         self.action_history, self.episodic_counting_memory, self.obj_centric_episodic_counting_memory = checkpoint
@@ -115,7 +118,7 @@ class ALFWorldEnvironment(gym.Wrapper):
         new_state_reward = new_state_reward * MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
         new_object_reward = self.obj_centric_episodic_counting_memory.get_object_novelty_reward(next_state)[0] # Between 0 and 1
         new_object_reward = new_object_reward * MAX_NORM_VALUE # Normalize value to be between 0 and 0.2
-        step_reward = -0.03 if step_reward == 0 else step_reward # Haven't reached goal: 0 -> -3, Reaching goal: 1
+        step_reward = -0.5 if step_reward == 0 else 100 # Haven't reached goal: 0 -> -3, Reaching goal: 100
 
         current_reward = step_reward + new_state_reward + new_object_reward
 
