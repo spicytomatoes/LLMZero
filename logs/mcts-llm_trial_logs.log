@@ -12,22 +12,21 @@ SUCCESS, Total steps: 4, total reward: 99.65681818181818
 You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, and a sidetable 1.
 
 Your task is to: put a book in bed.
-FAIL, Total steps: 10, total reward: -4.35
-
+FAIL, Total steps: 10, total reward: -3.65
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
 You are in the middle of a room. Looking quickly around you, you see a cabinet 15, a cabinet 14, a cabinet 13, a cabinet 12, a cabinet 11, a cabinet 10, a cabinet 9, a cabinet 8, a cabinet 7, a cabinet 6, a cabinet 5, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a coffeemachine 1, a countertop 4, a countertop 3, a countertop 2, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a fridge 1, a garbagecan 1, a microwave 1, a sinkbasin 1, a stoveburner 4, a stoveburner 3, a stoveburner 2, a stoveburner 1, and a toaster 1.
 
 Your task is to: put some bowl on fridge.
-FAIL, Total steps: 10, total reward: -4.35
+FAIL, Total steps: 10, total reward: -3.8571428571428568
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
 You are in the middle of a room. Looking quickly around you, you see a bathtubbasin 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a countertop 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a handtowelholder 1, a sinkbasin 2, a sinkbasin 1, a toilet 1, a toiletpaperhanger 1, and a towelholder 1.
 
 Your task is to: put a candle in toilet.
-SUCCESS, Total steps: 6, total reward: 98.8
+SUCCESS, Total steps: 5, total reward: 99.3
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
@@ -70,6 +69,6 @@ You are in the middle of a room. Looking quickly around you, you see a armchair 
 
 Your task is to: put a pillow in armchair.
 FAIL, Total steps: 10, total reward: -3.966666666666667
-Average reward: 25.46925170068027
+Average reward: 27.093443722943725
 Num SUCCESS: 3
 Num FAIL: 7
