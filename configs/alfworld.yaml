@@ -4,7 +4,7 @@ llm_policy:
     extract_action_regex: "optimal action: (.*)"
     prompt_buffer_prefix: "prompt_buffer/alfworld"
     save_buffer_interval: 1
-  load_prompt_buffer_path: "prompt_buffer/alfworld_20241115_185951.pkl" # update this path to the path of the saved prompt buffer
+  load_prompt_buffer_path: "prompt_buffer/alfworld_policy.pkl" # update this path to the path of the saved prompt buffer
   overwrite_prompt_buffer: False
 
   temp: 1.0
@@ -16,7 +16,7 @@ llm_mcts:
       extract_action_regex: "optimal action: (.*)"
       prompt_buffer_prefix: "prompt_buffer/alfworld"
       save_buffer_interval: 1
-    load_prompt_buffer_path: "prompt_buffer/alfworld_20241115_200400.pkl" # update this path to the path of the saved prompt buffer
+    load_prompt_buffer_path: "prompt_buffer/alfworld_policy_mcts.pkl" # update this path to the path of the saved prompt buffer
     overwrite_prompt_buffer: False
 
   temp: 10.0
