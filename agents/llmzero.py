@@ -109,10 +109,6 @@ class LLMModel:
             except Exception as e:
                 print(f"Error saving prompt buffer: {e}")
         
-        def __del__(self):
-            if len(self.prompt_buffer) > 0:
-                self.save_prompt_buffer(self.prompt_buffer_save_path)
-                print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
     
     
 class LLMTransitionModel(LLMModel):
@@ -233,6 +229,13 @@ class LLMRewardModel(LLMModel):
                         reward = match.group(1)
                         return float(reward), "success on fallback regex"
                 else:
+                    #try to extract the reward as the last float in the response
+                    matches = re.findall(r"-?\d+(?:\.\d+)?", response)
+                    
+                    if len(matches) > 0:
+                        reward = matches[-1]
+                        return float(reward), "success on last float"
+                    
                     print("Error: No match found with fallback regex, returning 0 as reward")
                     return 0, "error"
                 
@@ -313,6 +316,13 @@ class LLMValueModel(LLMModel):
                     value = match.group(1)
                     return float(value), "success on fallback regex"
             else:
+                #try to extract the reward as the last float in the response
+                matches = re.findall(r"-?\d+(?:\.\d+)?", response)
+                
+                if len(matches) > 0:
+                    reward = matches[-1]
+                    return float(reward), "success on last float"
+                    
                 print("Error: No match found with fallback regex, using 0 as value")
                 return 0, "error"
             
@@ -326,8 +336,8 @@ class LLMZeroAgent:
         self.cfg = {
             # "env": "elevator",  # TO DO: implement for alfworld
             "mcts": {
-                "num_simulations": 20,
-                "c_puct": 150,    #should be proportional to the scale of the rewards 
+                "num_simulations": 50,
+                "c_puct": 100,    #should be proportional to the scale of the rewards 
                 "gamma": 0.99,
                 "max_depth": 100,   # setting this higher would have less of an effect because there is no rollout
                 "backprop_T": 50,
@@ -337,17 +347,17 @@ class LLMZeroAgent:
                     "system_prompt_path": "prompts/prompt_elevator_policy.txt",
                     "extract_action_regex": r"optimal action: (.*)",
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_20241111_054002.pkl", # update this path to the path of the saved prompt buffer
+                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_20241112_040717.pkl", # update this path to the path of the saved prompt buffer
                 "prompt_buffer_prefix": "prompt_buffer/elevator_policy",
-                "save_buffer_interval": 1,
+                "save_buffer_interval": 5,
             } ,
             "llm_transition": {
                 "env_params": {
-                    "system_prompt_path": "prompts/prompt_elevator_transition.txt",
+                    "system_prompt_path": "prompts/prompt_elevator_transition_2.txt",
                     "extract_state_regex": r"next state:(.*?)```",
                     "extract_state_regex_fallback": [r"next state:(.*)", r"```plaintext(.*)```", r"\*\*Next State\*\*:\n(.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_20241111_054002.pkl", # update this path to the path of the saved prompt buffer   
+                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_20241112_040717.pkl", # update this path to the path of the saved prompt buffer   
             },
             "llm_reward": {
                 "env_params": {
@@ -357,7 +367,7 @@ class LLMZeroAgent:
                     "extract_done_regex": r"done: (.*)",
                     "extract_done_regex_fallback": [r"done: (.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_20241111_054002.pkl",
+                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_20241112_040718.pkl",
             },
             "llm_value": {
                 "env_params": {
@@ -365,7 +375,7 @@ class LLMZeroAgent:
                     "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
                     "extract_value_regex_fallback": [],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_value_20241111_054002.pkl",
+                "load_prompt_buffer_path": "prompt_buffer/elevator_value_20241112_040718.pkl",
             }
         }
         
@@ -442,7 +452,7 @@ class LLMZeroAgent:
             # current_action_node.Q += (cumulative_reward - current_action_node.Q) / current_action_node.N
             current_action_node.Rs.append(cumulative_reward)
             # softmax to prioritize actions with higher rewards
-            print("current_action_node.Rs", current_action_node.Rs)
+            # print("current_action_node.Rs", current_action_node.Rs)
             best_action_node.Q = np.sum(np.array(best_action_node.Rs) * softmax(best_action_node.Rs, T=self.args.backprop_T))
             current_state_node = current_action_node.parent
             current_state_node.N += 1
@@ -511,7 +521,8 @@ class LLMZeroAgent:
         most_visits = 0
         
         for i, child in enumerate(state_node.children):
-            if self.debug:
+            # if self.debug:
+            if True:
                 print(f"Action {child.action}: Q = {child.Q}, N = {child.N}")
             
             if child.N == most_visits:

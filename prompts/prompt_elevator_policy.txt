@@ -20,17 +20,23 @@ Follow these details to make decisions:
 
 # Steps
 
-1. **Assess the Current State**:
-   - Check if the elevator is moving up or down.
-   - Determine if the door is open or closed.
-   - Evaluate the number of passengers on each floor and the number in the elevator.
+1. **Check if the elevator door is open**
+   - If the door is open, **close** the door regardless if there are passengers because the passenger will board before the door closes.
+   - go to the next step if the door is closed.
 
-2. **Determine Valid Actions**:
-   - Analyze the possible actions based on the state, such as moving, opening/closing the door, or waiting.
-   
-3. **Decide on Optimal Action**:
-   - Base the decision on efficiency toward reaching the goal of ferrying passengers from upper floors to the first floor.
-   - Consider maximizing elevator capacity usage while following the movement and direction rules.
+2. **Check if there are passengers on the current floor**
+   - If there are **no passengers** on the current floor:
+      - **move** to the next floor.
+   - Otherwise, go to the next step.
+
+3. **Check if the elevator is moving down**
+   - If the elevator is moving down, **open** the door to let passengers in.
+   - Otherwise, go to the next step.
+
+4. **Check if there are passengers waiting on a higher floor**
+   - If there **are passengers waiting on a higher floor**, **move** to fetch the passengers on the higher floor first.
+   - Otherwise, **open** the door to let the passengers in.
+
 
 # Output Format
 
@@ -50,7 +56,7 @@ Where the action is one of:
 
 **Example 1**  
 **State**:  
-People waiting at floor 2: 0  
+People waiting at floor 2: 2  
 People waiting at floor 3: 0  
 People waiting at floor 4: 1  
 People waiting at floor 5: 0  
@@ -60,8 +66,7 @@ Elevator is moving down.
 Elevator door is open.  
 
 **Reasoning**:  
-- The goal is to pick up passengers if possible to maximize efficiency.
-- Since there is no one waiting on floor 2, the optimal action is to `close door` to proceed with movement.
+1. **Check if the elevator door is open**: Door is open. Close the door.
 
 **Output**:  
 ```plaintext
@@ -80,7 +85,9 @@ Elevator is moving down.
 Elevator door is closed.  
 
 **Reasoning**:  
-- The elevator is at the top floor and moving down, and since the door is closed, the optimal action is to `open door` to pick up more passengers.
+1. **Check if the elevator door is open**: No. Go to step 2.
+2. **Check if there are passengers on the current floor**: Yes. Go to step 3.
+3. **Check if the elevator is moving down**: Yes. Open the door.
 
 **Output**:  
 ```plaintext
@@ -99,7 +106,10 @@ Elevator is moving up.
 Elevator door is closed.  
 
 **Reasoning**:  
-- The elevator is at floor 3 and is moving up. There 3 people waiting at floor 3 and 1 people waiting at floor 5. The optimal strategy is to move up to pick up the passenger at floor 5 first and the pick up the passenger at floor 3 later on the way down.
+1. **Check if the elevator door is open**: No. Go to step 2.
+2. **Check if there are passengers on the current floor**: Yes. Go to step 3.
+3. **Check if the elevator is moving down**: No. Go to step 4.
+4. **Check if there are passengers waiting on a higher floor**: Yes. move to the next floor.
 
 **Output**:  
 ```plaintext
@@ -108,8 +118,5 @@ Optimal action: move
 
 # Notes
 
-- Always prioritize picking up passengers on the higher floors if there is space in the elevator to improve round trip efficiency.
-- Ensure that the elevator adheres to direction rules: it can only change direction at the top or bottom floor or when picking passengers up while moving up.
-- Movement is prohibited if the door is open, focus on closing it before initiating movement.
-- It is more advantageous for the elevator to be at the higher floors in general to be ready to pick up passengers.
+- Strictly follow the steps provided to decide on the optimal action
 - Strictly follow the format of the output of the example above. 

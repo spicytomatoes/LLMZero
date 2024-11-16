@@ -105,6 +105,8 @@ class LLMPolicyAgent:
         messages, probs = self.query_llm(user_prompt, valid_actions_text)
         
         dist = self._get_action_distribution(messages, probs, valid_actions_text)
+        
+        # print(f"distribution: {dist}")
             
         if self.debug:
             print("--------------FROM LLM POLICY AGENT--------------")
@@ -171,8 +173,17 @@ class LLMPolicyAgent:
                 print(f"Primary response (CUSTOM): {primary_response}")
             
             # Create a distribution of possible completions
-            return_msgs = [primary_response] + [f"Optimal action: {random.choice(valid_actions_text)}" for i in range(self.api_params["n"] - 1)]
-            logits = [2.0] + [0.1] * (self.api_params["n"] - 1)  # set a higher logit for the primary response
+            return_msgs = [primary_response]
+            
+            #smooth distirbution
+            valid_actions = self.env.get_valid_actions_text()
+            valid_actions = ['Optimal action: ' + action for action in valid_actions]
+            return_msgs += valid_actions
+            
+            logits = [0.0] * len(return_msgs)
+            logits[0] = 1.0
+            for i in range(1, len(logits)):
+                logits[i] = 0.2
 
             # Apply softmax to logits to get probabilities
             logits = np.array(logits)
@@ -275,10 +286,6 @@ class LLMPolicyAgent:
             except Exception as e:
                 print(f"Error saving prompt buffer: {e}")
             
-    def __del__(self):
-        if len(self.prompt_buffer) > 0:
-            self.save_prompt_buffer(self.prompt_buffer_save_path)
-            print(f"Prompt buffer saved to {self.prompt_buffer_save_path}")
     
     
         

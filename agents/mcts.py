@@ -126,30 +126,30 @@ class MCTSAgent:
                 depth += 1
                 
         # Step 3: Rollout, simulate the rest of the trajectory using a random policy
-        # rollout_rewards = []
+        rollout_rewards = []
         
-        # for _ in range(self.args.num_rollouts):
-        #     checkpoint = self.env.checkpoint()
-        #     rollout_reward = 0
-        #     rollout_depth = 0
-        #     tmp_depth = depth
+        for _ in range(self.args.num_rollouts):
+            checkpoint = self.env.checkpoint()
+            rollout_reward = 0
+            rollout_depth = 0
+            tmp_depth = depth
             
-        #     obs = current_state_node.state
-        #     while not done and tmp_depth < self.args.max_depth:
-        #         valid_actions = self.env.get_valid_actions(obs)
-        #         action = np.random.choice(valid_actions)
-        #         obs, reward, done, _, _ = self.env.step(action)
-        #         tmp_depth += 1
-        #         rollout_depth += 1
-        #         rollout_reward += reward * self.args.gamma ** rollout_depth
+            obs = current_state_node.state
+            while not done and tmp_depth < self.args.max_depth:
+                valid_actions = self.env.get_valid_actions(obs)
+                action = np.random.choice(valid_actions)
+                obs, reward, done, _, _ = self.env.step(action)
+                tmp_depth += 1
+                rollout_depth += 1
+                rollout_reward += reward * self.args.gamma ** rollout_depth
                 
-        #     rollout_rewards.append(rollout_reward)
-        #     self.env.restore_checkpoint(checkpoint)
+            rollout_rewards.append(rollout_reward)
+            self.env.restore_checkpoint(checkpoint)
             
-        # rollout_reward = np.mean(rollout_rewards)
+        rollout_reward = np.mean(rollout_rewards)
             
         # test using value estimation instead of rollout
-        rollout_reward = elevator_estimate_value(next_state_node.state)
+        # rollout_reward = elevator_estimate_value(next_state_node.state)
         # print("-----------------------------------------")
         # print(f"Action: {best_action_node.action}")
         # print(f"State:\n {self.env.state_to_text(next_state_node.state)}")
@@ -240,7 +240,8 @@ class MCTSAgent:
         most_visits = 0
         
         for i, child in enumerate(state_node.children):
-            if self.debug:
+            # if self.debug:
+            if True:
                 print(f"Action {child.action}: Q = {child.Q}, N = {child.N}")
             
             if child.N == most_visits:

@@ -106,3 +106,12 @@ for i in range(num_episodes_to_run):
         # pbar.set_description(f"Episode {i+1}, current steps: {num_steps}, total reward: {total_reward}")
         
 print("Average reward: ", np.mean(rewards))
+# if args.agent == "llm":
+#     agent.save_prompt_buffer("prompt_buffer/elevator_policy.pkl")
+# elif args.agent == "mcts-llm":
+#     agent.policy.save_prompt_buffer("prompt_buffer/elevator_policy_mcts.pkl")
+# elif args.agent == "llmzero":
+#     agent.policy.save_prompt_buffer("prompt_buffer/elevator_policy_llmzero.pkl")
+#     agent.transition_model.save_prompt_buffer("prompt_buffer/elevator_transition_llmzero.pkl")
+#     agent.reward_model.save_prompt_buffer("prompt_buffer/elevator_reward_llmzero.pkl")
+#     agent.value_model.save_prompt_buffer("prompt_buffer/elevator_value_llmzero.pkl")
