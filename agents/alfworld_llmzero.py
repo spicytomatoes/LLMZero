@@ -327,7 +327,7 @@ class ALFWorldLLMZeroAgent:
             # "env": "elevator",  # TO DO: implement for alfworld
             "mcts": {
                 "num_simulations": 20,
-                "c_puct": 100,    #should be proportional to the scale of the rewards 
+                "c_puct": 1,    #should be proportional to the scale of the rewards
                 "gamma": 0.99,
                 "max_depth": 10,   # setting this higher would have less of an effect because there is no rollout
                 "backprop_T": 50,
@@ -340,16 +340,20 @@ class ALFWorldLLMZeroAgent:
                 "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_policy",
                 "save_buffer_interval": 1,
+                "overwrite_prompt_buffer": False
             } ,
             "llm_transition": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_alfworld_transition.txt",
                     "extract_state_regex": r"next state:(.*?)```",
                     "extract_state_regex_fallback": [r"next state:(.*)", r"```plaintext(.*)```", r"\*\*Next State\*\*:\n(.*)"],
-                    "extract_action_regex": r"valid actions:(.*?)```",
-                    "extract_action_regex_fallback": [r"valid actions:(.*)", r"```plaintext(.*)```", r"\*\*Valid Actions\*\*:\n(.*)"],
+                    "extract_action_regex": r"valid actions:\n?(.*?)\n?```",
+                    "extract_action_regex_fallback": [r"valid actions:\n?(.*)", r"```plaintext(.*)```", r"\*\*Valid Actions\*\*:\n(.*)"],
                 },
                 "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
+                "prompt_buffer_prefix": "prompt_buffer/alfworld_transition",
+                "save_buffer_interval": 1,
+                "overwrite_prompt_buffer": False
             },
             "llm_reward": {
                 "env_params": {
@@ -360,6 +364,9 @@ class ALFWorldLLMZeroAgent:
                     "extract_done_regex_fallback": [r"done: (.*)"],
                 },
                 "load_prompt_buffer_path": None,
+                "prompt_buffer_prefix": "prompt_buffer/alfworld_reward",
+                "save_buffer_interval": 1,
+                "overwrite_prompt_buffer": False
             },
             "llm_value": {
                 "env_params": {
@@ -368,6 +375,9 @@ class ALFWorldLLMZeroAgent:
                     "extract_value_regex_fallback": [],
                 },
                 "load_prompt_buffer_path": None,
+                "prompt_buffer_prefix": "prompt_buffer/alfworld_value",
+                "save_buffer_interval": 1,
+                "overwrite_prompt_buffer": False
             }
         }
         
@@ -382,7 +392,7 @@ class ALFWorldLLMZeroAgent:
         # initialize policy
         self.policy = ALFWorldLLMPolicyAgent(env, device="cuda", debug=debug, **self.cfg["llm_policy"])
         self.transition_model = ALFWorldLLMTransitionModel(**self.cfg["llm_transition"], debug=debug)
-        self.reward_model = LLMRewardModel(**self.cfg["llm_reward"], debug=debug)
+        self.reward_model = ALFWorldLLMRewardModel(**self.cfg["llm_reward"], debug=debug)
         self.value_model = ALFWorldLLMValueModel(**self.cfg["llm_value"], debug=debug)
         
     def act(self, state):
@@ -540,12 +550,16 @@ class ALFWorldStateNode(StateNode):
 
         self.action_history = deepcopy(action_history)
 
+    def get_unique_id(self):
+        return self.state['text_state']
+
 class ALFWorldLLMTransitionModel(LLMModel):
     def __init__(self, 
                  env_params,
                  load_prompt_buffer_path=None,
                  prompt_buffer_prefix="prompt_buffer/alfworld_transition",
                  save_buffer_interval=1,
+                 overwrite_prompt_buffer=False,
                  llm_model='gpt-4o-mini', 
                  debug=False):
         
@@ -553,29 +567,34 @@ class ALFWorldLLMTransitionModel(LLMModel):
         
         super().__init__(env_params, load_prompt_buffer_path, prompt_buffer_prefix, save_buffer_interval, client, llm_model, debug)
         
+        self.extract_goal_regex = r"Your task is to:\s+(.*)"
         self.extract_state_regex = env_params["extract_state_regex"]
         self.extract_state_regex_fallback = env_params["extract_state_regex_fallback"]        
         self.extract_action_regex = env_params["extract_action_regex"]
         self.extract_action_regex_fallback = env_params["extract_action_regex_fallback"]
+
+        if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
+            self.prompt_buffer_save_path = load_prompt_buffer_path
         
-    def get_next_state(self, state: str, action: str):
+    def get_next_state(self, state: dict, action: str):
         '''
         Get the next state given the current state and action
         '''
         state_text = state['text_state']
         valid_actions_text = ', '.join(state['valid_actions'])
+        goal = self.extract_goal_from_state_text(state_text)
         
         # construct user prompt
         user_prompt = "**Current State:**\n"
         user_prompt += state_text
-        user_prompt = "**Current Valid Actions**\n"
+        user_prompt += "**Current Valid Actions**\n"
         user_prompt += valid_actions_text 
         user_prompt += "\n**Action:**"
         user_prompt += action + "\n"
         
         response = self.query_llm(user_prompt)
 
-        next_state, status = self.extract_state(response)
+        next_state, status = self.extract_state(response, goal)
         next_valid_actions, _ = self.extract_valid_actions(response)
         next_state = {
             'text_state': next_state,
@@ -583,8 +602,16 @@ class ALFWorldLLMTransitionModel(LLMModel):
         }
         
         return next_state, status
+
+    def extract_goal_from_state_text(self, state_text: str):
+        match = re.search(self.extract_goal_regex, state_text)
+
+        if match:
+            return match.group()
+        else:
+            return ''
     
-    def extract_state(self, response: str):
+    def extract_state(self, response: str, goal: str):
         '''
         Extract the next state from the LLM response
         '''
@@ -592,6 +619,7 @@ class ALFWorldLLMTransitionModel(LLMModel):
         match = re.search(self.extract_state_regex, response, re.DOTALL | re.IGNORECASE)
         if match is not None:
             next_state = match.group(1)
+            next_state += f'\n\n{goal}'
             return next_state, "success"
         else:
             if self.debug:
@@ -601,6 +629,7 @@ class ALFWorldLLMTransitionModel(LLMModel):
                 match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
                 if match is not None:
                     next_state = match.group(1)
+                    next_state += f'\n\n{goal}'
                     return next_state, "success on fallback regex"
             else:
                 print("Error: No match found with fallback regex, using full response as next state")
@@ -639,8 +668,12 @@ class ALFWorldLLMTransitionModel(LLMModel):
 
 
 class ALFWorldLLMValueModel(LLMValueModel):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, overwrite_prompt_buffer=False, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        load_prompt_buffer_path = kwargs['load_prompt_buffer_path']
+        if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
+            self.prompt_buffer_save_path = load_prompt_buffer_path
     
     def get_value(self, state: str, action_history: list):
         '''
@@ -659,6 +692,24 @@ class ALFWorldLLMValueModel(LLMValueModel):
         value, status = self.extract_value(response)
         
         return value, status
+
+class ALFWorldLLMRewardModel(LLMRewardModel):
+    def __init__(self, overwrite_prompt_buffer=False, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        load_prompt_buffer_path = kwargs['load_prompt_buffer_path']
+        if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
+            self.prompt_buffer_save_path = load_prompt_buffer_path
+
+    def extract_done(self, response: str):
+        '''
+        Extract the done flag from the LLM response
+        '''
+        # Temporary workaround
+        reward, status_reward = self.extract_reward(response)
+        if status_reward == 'error':
+            return False, 'error'
+        return reward == 1, 'success'
 
 # --------------------------------------
                 

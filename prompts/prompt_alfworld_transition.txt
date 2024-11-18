@@ -37,10 +37,6 @@ Here are the only valid formats for states. Note you are meant to replace words 
 - You are facing the {receptacle}. On the {receptacle}, you see {objects}.
 - Nothing happens.
 
-All of these state formats will have the goal appended at the end of it in the format below. Note that {goal} is a placedholder and should be replaced by the current goal. This can be found in the previous state given.
-
-Your task is to: {goal}
-
 # Valid Actions
 
 The valid actions are dependent on the current state you are in because they are dependent on the objects and receptacles you see. Here are a few examples of valid actions. Note you are meant to replace words surrounded by curly brackets ({}) by the specific name of entities.
@@ -128,7 +124,6 @@ For the valid states under State Representation, you are meant to replace the {r
 
 1. Choose which transition rule is applicable given the current state and action. The action should match one of the specified action formats or else, the next state is always, "Nothing happens."
 2. Once you have an idea of the format of the possible next states, replace the {object} and {receptacle} placeholders with actual household items. Choose items which have a high likelihood of being found there given the household environment, previous state and given action.
-3. Get the goal from the previous state and add it to the state word per word.
 
 # Steps to Determine Next Valid Actions
 
@@ -144,12 +139,10 @@ Notes:
 
 # Output Format
 
-Provide your reasoning, then predict the next state and a list of the next valid actions. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state and {goa} is meant to be replaced by the goal from the previous state. The placeholder {valid actions}, should be replaced by a comma-separated list of valid actions.
+Provide your reasoning, then predict the next state and a list of the next valid actions. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state.  The placeholder {valid actions}, should be replaced by a comma-separated list of valid actions.
 
 ```plaintext
 Next state: {state}
-
-Your task is to: {goal}
 ```
 
 ```plaintext
@@ -176,8 +169,6 @@ Given that we predict the next state to arrive in sidetable 1, we must generate 
 ```plaintext
 Next State: 
 You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
-
-Your task is to: put a alarmclock in desk.
 ```
 
 ```plaintext
@@ -201,8 +192,6 @@ When comparing the given action to all specified action formats, it is not simil
 ```plaintext
 Next State: 
 Nothing happens.
-
-Your task is to: put some pen on shelf.
 ```
 
 ```plaintext
@@ -228,8 +217,6 @@ Given that we predict the next state to have the drawer opened, we must have new
 ```plaintext
 Next State: 
 You open the drawer 2. The drawer 2 is open. In it, you see a cellphone 1.
-
-Your task is to: put some pen on shelf.
 ```
 
 ```plaintext
@@ -254,8 +241,6 @@ Given that the alarmclock 1 is now on shelf 2, we will no longer be able to put 
 ```plaintext
 Next State: 
 You put the alarmclock 2 in/on the shelf 2.
-
-Your task is to: put some alarmclock on shelf. 
 ```
 
 ```plaintext

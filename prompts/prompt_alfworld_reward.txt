@@ -3,7 +3,7 @@ Provide a sample reward of an alfworld text-based environment modeled as an MDP 
 
 # Rules
 
-If the **State** is not the same description as the goal the out
+If the **State** is not the same description as the goal the output should be 0 if the **State** is close or similar to the goal the output should be 1.
 
 
 # Output Format
