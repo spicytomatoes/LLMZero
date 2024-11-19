@@ -337,7 +337,7 @@ class ALFWorldLLMZeroAgent:
                     "system_prompt_path": "prompts/prompt_alfworld_policy.txt",
                     "extract_action_regex": r"optimal action: (.*)",
                 },
-                "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer
+                "load_prompt_buffer_path": "prompt_buffer/alfworld_policy_llmzero.pkl", # update this path to the path of the saved prompt buffer
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_policy",
                 "save_buffer_interval": 1,
                 "overwrite_prompt_buffer": False
@@ -350,7 +350,7 @@ class ALFWorldLLMZeroAgent:
                     "extract_action_regex": r"valid actions:\n?(.*?)\n?```",
                     "extract_action_regex_fallback": [r"valid actions:\n?(.*)", r"```plaintext(.*)```", r"\*\*Valid Actions\*\*:\n(.*)"],
                 },
-                "load_prompt_buffer_path": None, # update this path to the path of the saved prompt buffer   
+                "load_prompt_buffer_path": "prompt_buffer/alfworld_transition_llmzero.pkl", # update this path to the path of the saved prompt buffer   
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_transition",
                 "save_buffer_interval": 1,
                 "overwrite_prompt_buffer": False
@@ -363,7 +363,7 @@ class ALFWorldLLMZeroAgent:
                     "extract_done_regex": r"done: (.*)",
                     "extract_done_regex_fallback": [r"done: (.*)"],
                 },
-                "load_prompt_buffer_path": None,
+                "load_prompt_buffer_path": "prompt_buffer/alfworld_reward_llmzero.pkl",
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_reward",
                 "save_buffer_interval": 1,
                 "overwrite_prompt_buffer": False
@@ -374,7 +374,7 @@ class ALFWorldLLMZeroAgent:
                     "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
                     "extract_value_regex_fallback": [],
                 },
-                "load_prompt_buffer_path": None,
+                "load_prompt_buffer_path": "prompt_buffer/alfworld_value_llmzero.pkl",
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_value",
                 "save_buffer_interval": 1,
                 "overwrite_prompt_buffer": False
