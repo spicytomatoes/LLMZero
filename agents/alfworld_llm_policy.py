@@ -21,7 +21,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
                  save_buffer_interval=1,
                  overwrite_prompt_buffer=False,
                  debug=False,
-                 temp=0.1   #smoothing factor for action distribution
+                 temp=0.3   #smoothing factor for action distribution
                 ):
 
         custom_env_params = {
@@ -70,7 +70,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
             text = "**State**: "
             text += state_text
             text += "\n**Valid Actions**: "
-            text += ' ,'.join(valid_actions_text)
+            text += ', '.join(valid_actions_text)
             return text
 
         messages = [{"role": "system", "content": self.system_prompt}]
@@ -78,7 +78,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         for state, action in zip(state_history[:-1], action_history):
             messages.extend([
                 {"role": "user", "content": state_to_text(state)},
-                {"role": "assistant", "content": action},
+                {"role": "assistant", "content": f'Optimal action: {action}'},
             ])
 
         messages.append({"role": "user", "content": state_to_text(curr_state)})

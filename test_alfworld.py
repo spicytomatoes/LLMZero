@@ -51,7 +51,7 @@ def log(log_file, text):
 def run_single_trial(env, agent, log_file):
     num_steps = 0
     total_reward = 0
-    max_num_steps = 40
+    max_num_steps = 10
 
     state, _ = env.reset()
     log(log_file, state['text_state'])
