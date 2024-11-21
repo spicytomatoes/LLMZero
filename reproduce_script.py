@@ -5,7 +5,38 @@ import gym
 import random
 import os
 from enum import Enum
+import torch
 from dotenv import load_dotenv, set_key, get_key
+
+def create_env_file_if_needed():
+    env_file = ".env"
+
+    keys = [
+        "OPENAI_API_KEY",
+        "CUSTOM_BASE_URL",
+        "CUSTOM_API_KEY",
+        "CUSTOM_MODEL_ID",
+        "USE_OPENAI_CUSTOM",
+    ]
+    
+    print(f"Checking if {env_file} exists...")
+
+    if not os.path.exists(env_file):
+        print(f"{env_file} not found. Creating it...")
+        open(env_file, 'w').close()
+
+    load_dotenv(env_file)
+
+    for key in keys:
+        if get_key(dotenv_path=env_file, key_to_get=key) is None:
+            print(f"{key} not found in {env_file}. Adding it...")
+            set_key(env_file, key, "")
+            print(f"{key} is added to {env_file}.")
+        else:
+            print(f"{key} already exists in {env_file}. No changes needed.")
+
+create_env_file_if_needed()
+
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
 from environments.ElevatorEnvironment import ElevatorEnvironment
 from agents.random_agent import RandomAgent
@@ -19,6 +50,7 @@ from agents.elevator_expert import ElevatorExpertPolicyAgent
 SEED = 42
 # load_dotenv()
 np.random.seed(SEED)
+torch.manual_seed(SEED)
 
 
 class ENVIRONMENT(str, Enum):
@@ -112,6 +144,8 @@ def create_env_file_if_needed():
         "CUSTOM_MODEL_ID",
         "USE_OPENAI_CUSTOM",
     ]
+    
+    print(f"Checking if {env_file} exists...")
 
     if not os.path.exists(env_file):
         print(f"{env_file} not found. Creating it...")
@@ -139,7 +173,7 @@ def run():
     for i in range(1):
         num_steps = 0
         total_reward = 0
-        if isinstance(agent, RandomAgent):
+        if isinstance(agent, RandomAgent) or isinstance(agent, NNAgent):
             state, _ = env.reset(seed=SEED)
         else:
             state, _ = env.reset()
@@ -166,5 +200,4 @@ def run():
 
 if __name__ == "__main__":
     # check if .env file exist, if not create one and append something to it
-    create_env_file_if_needed()
     run()
