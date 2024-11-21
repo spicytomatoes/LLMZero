@@ -35,6 +35,7 @@ def create_env_file_if_needed():
         else:
             print(f"{key} already exists in {env_file}. No changes needed.")
 
+
 create_env_file_if_needed()
 
 from environments.ALFWorldEnvironment import ALFWorldEnvironment
@@ -48,7 +49,6 @@ from agents.elevator_expert import ElevatorExpertPolicyAgent
 
 
 SEED = 42
-# load_dotenv()
 np.random.seed(SEED)
 torch.manual_seed(SEED)
 
