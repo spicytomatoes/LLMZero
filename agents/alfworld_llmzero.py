@@ -199,14 +199,25 @@ class LLMRewardModel(LLMModel):
             self.extract_done_regex = env_params["extract_done_regex"]
             self.extract_done_regex_fallback = env_params["extract_done_regex_fallback"]
             
-        def get_reward_done(self, state: str, action: str):
+        def get_reward_done(self, state, state_history: list, action_history: list):
             '''
             Get the reward given the current state and action
             '''
+            def append_state_action_to_prompt(prompt, s, a=None):
+                prompt += "\nState: "
+                prompt += s['text_state']
+                if a is not None:
+                    prompt += "\nAction: "
+                    prompt += a
+                prompt += "\n"
+                return prompt
             
             # construct user prompt
-            user_prompt = state['text_state'] # CHANGED
-            
+            user_prompt = ""
+            for s_h, a_h in zip(state_history, action_history):
+                user_prompt = append_state_action_to_prompt(user_prompt, s_h, a_h)
+            user_prompt = append_state_action_to_prompt(user_prompt, state)
+
             response = self.query_llm(user_prompt)
             
             reward, status_reward = self.extract_reward(response)
@@ -235,6 +246,13 @@ class LLMRewardModel(LLMModel):
                         reward = match.group(1)
                         return float(reward), "success on fallback regex"
                 else:
+                    #try to extract the reward as the last float in the response
+                    matches = re.findall(r"-?\d+(?:\.\d+)?", response)
+                    
+                    if len(matches) > 0:
+                        reward = matches[-1]
+                        return float(reward), "success on last float"
+                    
                     print("Error: No match found with fallback regex, returning 0 as reward")
                     return 0, "error"
                 
@@ -281,14 +299,24 @@ class LLMValueModel(LLMModel):
         self.extract_value_regex = env_params["extract_value_regex"]
         self.extract_value_regex_fallback = env_params["extract_value_regex_fallback"]
             
-    def get_value(self, state: str):
+    def get_value(self, state: str, state_history: list, action_history: list):
         '''
         Get the value of the state
         '''
+        def append_state_action_to_prompt(prompt, s, a=None):
+            prompt += "\nState: "
+            prompt += s['text_state']
+            if a is not None:
+                prompt += "\nAction: "
+                prompt += a
+            prompt += "\n"
+            return prompt
         
         # construct user prompt
-        user_prompt = "**State:**\n"
-        user_prompt += state
+        user_prompt = ""
+        for s_h, a_h in zip(state_history, action_history):
+            user_prompt = append_state_action_to_prompt(user_prompt, s_h, a_h)
+        user_prompt = append_state_action_to_prompt(user_prompt, state)
         
         response = self.query_llm(user_prompt)
         
@@ -301,22 +329,20 @@ class LLMValueModel(LLMModel):
         Extract the value from the LLM response
         '''
         
-        match = re.search(self.extract_value_regex, response, re.DOTALL | re.IGNORECASE)
-        if match is not None:
-            value = match.group(1)
+        matches = re.findall(self.extract_value_regex, response, re.DOTALL | re.IGNORECASE)
+        if len(matches) > 0:
+            value = matches[-1]
             return float(value), "success"
         else:
-            if self.debug:
-                print("Warning: No match found, trying fallback regex...")
+            #try to extract the value as the last float in the response
+            matches = re.findall(r"-?\d+(?:\.\d+)?", response)
             
-            for regex in self.extract_value_regex_fallback:
-                match = re.search(regex, response, re.DOTALL | re.IGNORECASE)
-                if match is not None:
-                    value = match.group(1)
-                    return float(value), "success on fallback regex"
-            else:
-                print("Error: No match found with fallback regex, using 0 as value")
-                return 0, "error"
+            if len(matches) > 0:
+                value = matches[-1]
+                return float(value), "success on last float"
+            
+            print("Error: No match found with fallback regex, returning 0 as value")
+            return 0, "error"
             
                  
 class ALFWorldLLMZeroAgent:
@@ -359,10 +385,10 @@ class ALFWorldLLMZeroAgent:
             "llm_reward": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_alfworld_reward.txt",
-                    "extract_reward_regex": r"TOTAL_REWARD_FINAL = (-?\d+)", # only use the first match, same line
+                    "extract_reward_regex": r"TOTAL_REWARD_FINAL=(-?\d+.\d+)", # only use the first match, same line
                     "extract_reward_regex_fallback": [],
-                    "extract_done_regex": r"done: (.*)",
-                    "extract_done_regex_fallback": [r"done: (.*)"],
+                    "extract_done_regex": r"IS_TERMINAL=(True|False)",
+                    "extract_done_regex_fallback": [],
                 },
                 "load_prompt_buffer_path": "prompt_buffer/alfworld_reward_llmzero.pkl",
                 "prompt_buffer_prefix": "prompt_buffer/alfworld_reward",
@@ -372,7 +398,7 @@ class ALFWorldLLMZeroAgent:
             "llm_value": {
                 "env_params": {
                     "system_prompt_path": "prompts/prompt_alfworld_value.txt",
-                    "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
+                    "extract_value_regex": r"FINAL_VALUE=(-?\d+.\d+)",
                     "extract_value_regex_fallback": [],
                 },
                 "load_prompt_buffer_path": "prompt_buffer/alfworld_value_llmzero.pkl",
@@ -428,7 +454,7 @@ class ALFWorldLLMZeroAgent:
             best_action_node = self.select_action_node(current_state_node)
             # obs, reward, done, _, _ = self.env.step(best_action_node.action)
             obs, _ = self.transition_model.get_next_state(current_state_node.state, best_action_node.action, state_history, action_history)
-            reward, done, _ = self.reward_model.get_reward_done(current_state_node.state, best_action_node.action)
+            reward, done, _ = self.reward_model.get_reward_done(obs, state_history, action_history)
             state_history.append(obs)
             action_history.append(best_action_node.action)
             
@@ -447,7 +473,7 @@ class ALFWorldLLMZeroAgent:
                 depth += 1
                 
         # Step 3: Get value of the leaf node using from LLM value model
-        value, _ = self.value_model.get_value(current_state_node.state, current_state_node.action_history)
+        value, _ = self.value_model.get_value(current_state_node.state, current_state_node.state_history, current_state_node.action_history)
             
         # Step 4: Backpropagation, update the Q values of the nodes in the trajectory
         current_action_node = best_action_node
@@ -698,17 +724,24 @@ class ALFWorldLLMValueModel(LLMValueModel):
         if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
             self.prompt_buffer_save_path = load_prompt_buffer_path
     
-    def get_value(self, state: str, action_history: list):
+    def get_value(self, state: str, state_history: list, action_history: list):
         '''
         Get the value of the state
         '''
-        state_text = state['text_state']
-
+        def append_state_action_to_prompt(prompt, s, a=None):
+            prompt += "\nState: "
+            prompt += s['text_state']
+            if a is not None:
+                prompt += "\nAction: "
+                prompt += a
+            prompt += "\n\n"
+            return prompt
+        
         # construct user prompt
-        user_prompt = "**State:**\n"
-        user_prompt += state_text
-        user_prompt += "\n\n**Previous Actions:**\n"
-        user_prompt += str(action_history)
+        user_prompt = ""
+        for s_h, a_h in zip(state_history, action_history):
+            user_prompt = append_state_action_to_prompt(user_prompt, s_h, a_h)
+        user_prompt = append_state_action_to_prompt(user_prompt, state)
         
         response = self.query_llm(user_prompt)
         
@@ -723,16 +756,6 @@ class ALFWorldLLMRewardModel(LLMRewardModel):
         load_prompt_buffer_path = kwargs['load_prompt_buffer_path']
         if overwrite_prompt_buffer and load_prompt_buffer_path is not None:
             self.prompt_buffer_save_path = load_prompt_buffer_path
-
-    def extract_done(self, response: str):
-        '''
-        Extract the done flag from the LLM response
-        '''
-        # Temporary workaround
-        reward, status_reward = self.extract_reward(response)
-        if status_reward == 'error':
-            return False, 'error'
-        return reward == 1, 'success'
 
 # --------------------------------------
                 
