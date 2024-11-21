@@ -46,12 +46,14 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         text_action = state['valid_actions'][int_action]
         return text_action
     
-    def get_action_distribution(self, state):
-        state_history, action_history = self.env.get_state_and_action_history()
+    def get_action_distribution(self, state, state_history=None, action_history=None):
+        if state_history is None or action_history is None:
+            state_history, action_history = self.env.get_state_and_action_history()
+
         messages = self._build_llm_messages(state, state_history, action_history)
 
         return_msgs = self.query_llm(messages)
-        
+
         valid_actions_text = self.env.get_valid_actions_text(state)
         dist = self._get_action_distribution(return_msgs, valid_actions_text)
             
@@ -120,6 +122,7 @@ class ALFWorldLLMPolicyAgent(LLMPolicyAgent):
         cos_sim = self.compute_cos_sim(action_samples, valid_actions_text)
 
         action_probs = cos_sim.sum(axis=0)
+        action_probs = np.clip(action_probs, 0, 1) # Handle cases when sum slightly exceeds 1
         action_probs = action_probs ** (1/self.temp)
         action_probs /= np.sum(action_probs + 1e-10)
         
