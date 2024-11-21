@@ -96,11 +96,11 @@ def load_env(env_str: ENVIRONMENT):
     return env, cfg
 
 
-def load_agent(agent_str, env: gym.Wrapper, cfg):
+def load_agent(agent_str, env_str,  env: gym.Wrapper, cfg):
     if agent_str == AGENT.LLM_POLICY.name:
-        if env == ENVIRONMENT.ELEVATOR:
+        if env_str == ENVIRONMENT.ELEVATOR.name:
             agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
-        elif env == ENVIRONMENT.ALF_WORLD:
+        elif env_str == ENVIRONMENT.ALF_WORLD.name:
             agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
         else:
             raise ValueError("Invalid Environment")
@@ -116,10 +116,10 @@ def load_agent(agent_str, env: gym.Wrapper, cfg):
                           debug=False, args=mcts_args)
     elif agent_str == AGENT.LLM_MCTS.name:
         mcts_args = cfg["llm_mcts"]["mcts_args"]
-        if env == ENVIRONMENT.ELEVATOR:
+        if env_str == ENVIRONMENT.ELEVATOR.name:
             llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
             agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
-        elif env == ENVIRONMENT.ALF_WORLD:
+        elif env_str == ENVIRONMENT.ALF_WORLD.name:
             llm_agent = ALFWorldLLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
             agent = ALFworldMCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
         else:
@@ -127,9 +127,9 @@ def load_agent(agent_str, env: gym.Wrapper, cfg):
     elif agent_str == AGENT.NEURAL_NETWORK.name:
         agent = NNAgent(env, cfg=cfg["nn_agent"])
     elif agent_str == AGENT.LLM_ZERO.name:
-        if env == ENVIRONMENT.ELEVATOR:
+        if env_str == ENVIRONMENT.ELEVATOR.name:
             agent = LLMZeroAgent(env)
-        elif env == ENVIRONMENT.ALF_WORLD:
+        elif env_str == ENVIRONMENT.ALF_WORLD.name:
             agent = ALFWorldLLMZeroAgent(env)
         else:
             raise ValueError("Invalid Environment")
@@ -163,7 +163,7 @@ def run():
     selected_env, selected_agent = user_selection()
 
     env, cfg = load_env(selected_env)
-    agent = load_agent(selected_agent, env, cfg)
+    agent = load_agent(selected_agent, selected_env, env, cfg)
 
     rewards = []
 
