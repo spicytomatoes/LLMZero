@@ -61,13 +61,13 @@ Below are the types of action the agent can take as well as possible states you 
 1. **Moving to a Receptacle**
 This action is taken by the agent to move from his current location to another visible location. The next state should move the agent to the next location and show all of the objects and receptacle the agent can observe in the new location. Have a bias to adding the goal object only if it is likely to be found in that state.
 Action Format: go to {receptacle}
-Possible Next States: "You arrive at {receptacle}. On the {receptacle}, you see {objects}", "You arrive at {receptacle}. On the {receptacle}, you see nothing.", "You arrive at {receptacle}. The {receptacle} is closed.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see {objects}.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see nothing."
+Possible Next States: "You arrive at {receptacle}. On the {receptacle}, you see {objects}", "You arrive at {receptacle}. On the {receptacle}, you see nothing.", "You arrive at {receptacle}. The {receptacle} is closed.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see {objects}."
 Possible Next Actions: Actions that interact with newly observed receptacles and objects.
 
 2. **Opening a Receptacle**
-This action is taken by the agent to open a receptacle that can be opened. The next state should metion the opened receptacle and show all of objects inside that receptacle.
+This action is taken by the agent to open a receptacle that can be opened. The next state should mention the opened receptacle and show only the goal object inside.
 Action Format: open {receptacle}
-Possible Next States: "You open the {receptacle}. The {receptacle} is open. In it, you see {objects}.", "You open the {receptacle}. The {receptacle} is open. In it, you see nothing."
+Possible Next States: "You open the {receptacle}. The {receptacle} is open. In it, you see {goal object}."
 Possible Next Actions: Actions that interact with newly observed receptacles and objects.
 
 3. **Closing a Receptacle**
@@ -89,9 +89,9 @@ Possible Next States: "You pick up the {object} from the {name}.", "You pick up 
 Possible Next Actions: Similar actions to previous state but remove the action of placing the object and add the action of picking up the object.
 
 6. **Examine a Receptacle**
-This action is taken by the agent to examine a visible receptacle. The next state should mention all of the objects an agent can see on the receptacle.
+This action is taken by the agent to examine a visible receptacle. The next state would be "Nothing happened." The valid_actions would remain exactly the same as the previous state.
 Action Format: examine {receptacle}
-Possible Next States: "On the {receptacle}, you see {objects}."
+Possible Next States: "Nothing happened."
 Possible Next Actions: The same actions as the previous state.
 
 7. **Examine an Object**
@@ -222,15 +222,15 @@ Valid actions: examine drawer 4, go to armchair 1, go to armchair 2, go to armch
 Action: open drawer 4
 
 **Reasoning**
-This action has the same action format as **Opening a Receptacle**. This means the agent opened a receptacle, in this case, drawer 4. Drawer 4 will now be open and the agent can observe the objects located inside of it. CDs, pencils, and keychains are objects commonly found in drawers. Using this information we replace the {receptacle} and {objects} placeholders from the state format to produce the predicted next state.  Given that we predict the next state to have the drawer opened, we must have new actions that interact with the new objects we observe from the open drawer. We must add actions that can pickup these objects. We must also add an action to close the shelf.
+This action has the same action format as **Opening a Receptacle**. This means the agent opened a receptacle, in this case, drawer 4. Drawer 4 will now be open and the agent can observe the objects located inside of it. We always assume that the goal object (alarmclock) is inside a receptacle after opening it. Using this information we replace the {receptacle} and {objects} placeholders from the state format to produce the predicted next state.  Given that we predict the next state to have the drawer opened, we must have new actions to pick up the goal object inside the drawer. We must also add an action to close the shelf.
 
 **Output**:
 ```plaintext
-Next State: You open the drawer 4. The drawer 4 is open. In it, you see a keychain 3.
+Next State: You open the drawer 4. The drawer 4 is open. In it, you see a alarmclock 1.
 ```
 
 ```plaintext
-Valid actions: close drawer 4, examine drawer 4, go to armchair 1, go to armchair 2, go to armchair 3, go to bed 1, go to cabinet 1, go to cabinet 2, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to safe 1, go to sidetable 1, inventory, look, take keychain 3 from drawer 4
+Valid actions: close drawer 4, examine drawer 4, go to armchair 1, go to armchair 2, go to armchair 3, go to bed 1, go to cabinet 1, go to cabinet 2, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to safe 1, go to sidetable 1, inventory, look, take alarmclock 1 from drawer 4
 ```
 
 ### Example 4

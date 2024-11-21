@@ -40,7 +40,7 @@ FAIL, Total steps: 10, total reward: -2.8499999999999996
 You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 1, and a sidetable 1.
 
 Your task is to: put a creditcard in shelf.
-FAIL, Total steps: 10, total reward: -2.79
+SUCCESS, Total steps: 10, total reward: 97.71000000000001
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
@@ -58,17 +58,17 @@ FAIL, Total steps: 10, total reward: -2.6581818181818186
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
-You are in the middle of a room. Looking quickly around you, you see a armchair 1, a bed 1, a cabinet 4, a cabinet 3, a cabinet 2, a cabinet 1, a drawer 6, a drawer 5, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a dresser 1, a garbagecan 1, a sidetable 2, and a sidetable 1.
+You are in the middle of a room. Looking quickly around you, you see a armchair 3, a armchair 2, a armchair 1, a bed 1, a cabinet 2, a cabinet 1, a desk 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a safe 1, and a sidetable 1.
 
-Your task is to: put a pencil in sidetable.
-FAIL, Total steps: 10, total reward: -2.8
+Your task is to: put a pen in sidetable.
+SUCCESS, Total steps: 4, total reward: 99.64181818181818
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
 You are in the middle of a room. Looking quickly around you, you see a armchair 1, a coffeetable 1, a garbagecan 1, a shelf 14, a shelf 13, a shelf 12, a shelf 11, a shelf 10, a shelf 9, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, a sofa 1, a tvstand 2, and a tvstand 1.
 
 Your task is to: put a pillow in armchair.
-FAIL, Total steps: 10, total reward: -2.333333333333333
-Average reward: 38.13519696969697
-Num SUCCESS: 4
-Num FAIL: 6
+SUCCESS, Total steps: 6, total reward: 98.93333333333334
+Average reward: 68.55604546
+Num SUCCESS: 7
+Num FAIL: 3
