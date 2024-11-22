@@ -1,5 +1,5 @@
 tqdm
-dotenv
+python-dotenv
 transformers==4.46.1
 sentence-transformers==3.2.1
 openai

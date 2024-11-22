@@ -347,7 +347,7 @@ class LLMZeroAgent:
                     "system_prompt_path": "prompts/prompt_elevator_policy.txt",
                     "extract_action_regex": r"optimal action: (.*)",
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_20241112_040717.pkl", # update this path to the path of the saved prompt buffer
+                "load_prompt_buffer_path": "prompt_buffer/elevator_policy_llmzero.pkl", # update this path to the path of the saved prompt buffer
                 "prompt_buffer_prefix": "prompt_buffer/elevator_policy",
                 "save_buffer_interval": 5,
             } ,
@@ -357,7 +357,7 @@ class LLMZeroAgent:
                     "extract_state_regex": r"next state:(.*?)```",
                     "extract_state_regex_fallback": [r"next state:(.*)", r"```plaintext(.*)```", r"\*\*Next State\*\*:\n(.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_20241112_040717.pkl", # update this path to the path of the saved prompt buffer   
+                "load_prompt_buffer_path": "prompt_buffer/elevator_transition_llmzero.pkl", # update this path to the path of the saved prompt buffer   
             },
             "llm_reward": {
                 "env_params": {
@@ -367,7 +367,7 @@ class LLMZeroAgent:
                     "extract_done_regex": r"done: (.*)",
                     "extract_done_regex_fallback": [r"done: (.*)"],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_20241112_040718.pkl",
+                "load_prompt_buffer_path": "prompt_buffer/elevator_reward_llmzero.pkl",
             },
             "llm_value": {
                 "env_params": {
@@ -375,7 +375,7 @@ class LLMZeroAgent:
                     "extract_value_regex": r"\\boxed\{(-?\d*\.?\d+)\}",
                     "extract_value_regex_fallback": [],
                 },
-                "load_prompt_buffer_path": "prompt_buffer/elevator_value_20241112_040718.pkl",
+                "load_prompt_buffer_path": "prompt_buffer/elevator_value_llmzero.pkl",
             }
         }
         
