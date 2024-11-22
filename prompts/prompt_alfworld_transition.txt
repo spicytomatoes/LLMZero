@@ -1,5 +1,5 @@
 
-Provide a sample next state as well as a list of valid actions of a household modeled as a POMDP (Partially Observable Markov Decision Process) based on a previous state and a given action. The system involves looking for specific household items and placing them in specific locations within the house.
+Provide a sample next state as well as a list of valid actions of a household modeled as a POMDP (Partially Observable Markov Decision Process) based on a trajectory of previous states and actions. The system involves looking for specific household items and placing them in specific locations within the house.
 
 # Environment Entities
 
@@ -59,15 +59,15 @@ Notes:
 Below are the types of action the agent can take as well as possible states you can reach. Note you are meant to replace words surrounded by curly brackets ({}) by the specific name of entities.
 
 1. **Moving to a Receptacle**
-This action is taken by the agent to move from his current location to another visible location. The next state should move the agent to the next location and show all of the objects and receptacle the agent can observe in the new location.
+This action is taken by the agent to move from his current location to another visible location. The next state should move the agent to the next location and show all of the objects and receptacle the agent can observe in the new location. Have a bias to adding the goal object only if it is likely to be found in that state.
 Action Format: go to {receptacle}
-Possible Next States: "You arrive at {receptacle}. On the {receptacle}, you see {objects}", "You arrive at {receptacle}. On the {receptacle}, you see nothing.", "You arrive at {receptacle}. The {receptacle} is closed.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see {objects}.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see nothing."
+Possible Next States: "You arrive at {receptacle}. On the {receptacle}, you see {objects}", "You arrive at {receptacle}. On the {receptacle}, you see nothing.", "You arrive at {receptacle}. The {receptacle} is closed.", "You arrive at {receptacle}. The {receptacle} is open. In it, you see {objects}."
 Possible Next Actions: Actions that interact with newly observed receptacles and objects.
 
 2. **Opening a Receptacle**
-This action is taken by the agent to open a receptacle that can be opened. The next state should metion the opened receptacle and show all of objects inside that receptacle.
+This action is taken by the agent to open a receptacle that can be opened. The next state should mention the opened receptacle and show only the goal object inside.
 Action Format: open {receptacle}
-Possible Next States: "You open the {receptacle}. The {receptacle} is open. In it, you see {objects}.", "You open the {receptacle}. The {receptacle} is open. In it, you see nothing."
+Possible Next States: "You open the {receptacle}. The {receptacle} is open. In it, you see {goal object}."
 Possible Next Actions: Actions that interact with newly observed receptacles and objects.
 
 3. **Closing a Receptacle**
@@ -89,9 +89,9 @@ Possible Next States: "You pick up the {object} from the {name}.", "You pick up 
 Possible Next Actions: Similar actions to previous state but remove the action of placing the object and add the action of picking up the object.
 
 6. **Examine a Receptacle**
-This action is taken by the agent to examine a visible receptacle. The next state should mention all of the objects an agent can see on the receptacle.
+This action is taken by the agent to examine a visible receptacle. The next state would be "Nothing happened." The valid_actions would remain exactly the same as the previous state.
 Action Format: examine {receptacle}
-Possible Next States: "On the {receptacle}, you see {objects}."
+Possible Next States: "Nothing happened."
 Possible Next Actions: The same actions as the previous state.
 
 7. **Examine an Object**
@@ -128,7 +128,7 @@ For the valid states under State Representation, you are meant to replace the {r
 # Steps to Determine Next Valid Actions
 
 1. Choose which transition rule is applicable given the current state and action. The action should match one of the specified action formats or else, the next valid actions are always the same as the previous actions.
-2. Given the previous state, previous valid actions and current state, see which actions can most likely be taken from the next state generated in the previous section.
+2. Given all the previous actions and states, see which actions can most likely be taken from the next state generated in the previous section.
 3. Generate a list of possible actions and output them in the specified format given in # Valid Actions.
 
 Notes:
@@ -139,112 +139,132 @@ Notes:
 
 # Output Format
 
-Provide your reasoning, then predict the next state and a list of the next valid actions. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state.  The placeholder {valid actions}, should be replaced by a comma-separated list of valid actions.
+Provide your reasoning, then predict the next state and a list of the next valid actions. The reasoning should be following the steps above and concise. The output state should be represented in the text format below. Note that {state} in the test is meant to be replaced by what you think is the next state.  The placeholder {valid actions}, should be replaced by a comma-separated list of valid actions. Do not add any additional formatting or special characters aside from what is specified in the format.
 
 ```plaintext
 Next state: {state}
 ```
 
 ```plaintext
-Valid actions:
-{valid_actions}
+Valid actions: {valid_actions}
 ```
 
 # Examples
 
 ### Example 1 
-**Current State**:  
--= Welcome to TextWorld, ALFRED! =-\n\nYou are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.\n\nYour task is to: put a alarmclock in desk.
+State: -= Welcome to TextWorld, ALFRED! =-
 
-**Current Valid Actions**
-go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, go to sidetable 1, inventory, look
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
 
-**Action**: go to sidetable 1  
+Your task is to: put a alarmclock in desk.
+Valid actions: go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, go to sidetable 1, inventory, look
+Action: go to sidetable 1
+
+
+State: You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+Valid actions: examine sidetable 1, go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, inventory, look, take alarmclock 1 from sidetable 1, take alarmclock 2 from sidetable 1, take alarmclock 3 from sidetable 1, take creditcard 1 from sidetable 1, take keychain 1 from sidetable 1, take pen 2 from sidetable 1, take pen 3 from sidetable 1, take pencil 3 from sidetable 1, use desklamp 1
+Action: take alarmclock 1 from sidetable 1
+
+
+State: You pick up the alarmclock 1 from the sidetable 1.
+Valid actions: examine alarmclock 1, examine sidetable 1, go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, inventory, look, put alarmclock 1 in/on sidetable 1, use desklamp 1
+Action: go to desk 1
 
 **Reasoning**:
-The given action follows the action format for **Moving to a Receptacle**. Thus, in the next state, we expect the agent to move to the location sidetable 1. Alarmclocks, credit cards, desklamps, keychains, pen and pencils are objects that can usually be found on a sidetable. Using this information, we produce the next output in the format specified.
-Given that we predict the next state to arrive in sidetable 1, we must generate actions related to the new objects and receptacles the agent observes.
+The latest action follows the action format for **Moving to a Receptacle**. Thus, in the next state, we expect the agent to move to the location desk 1. Imagine the different objects that desk 1 are most likely to contain. We also know from our previous actions that we have picked-up alarm clock 1. Given all of this, our list of valid actions must include being able to put down alarm clock 1, picking up objects from desk 1 and going to other locations. Using this information, we produce the next output in the format specified.
 
 **Output**:
 ```plaintext
-Next State: 
-You arrive at sidetable 1. On the sidetable 1, you see a alarmclock 3, a alarmclock 2, a alarmclock 1, a creditcard 1, a desklamp 1, a keychain 1, a pen 3, a pen 2, and a pencil 3.
+Next State: You arrive at desk 1. On the desk 1, you see a book 2, a bowl 1, a cd 3, a pencil 2, a pencil 1, and a remotecontrol 1.'
 ```
 
 ```plaintext
-Valid actions:
-examine sidetable 1, go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, inventory, look, take alarmclock 1 from sidetable 1, take alarmclock 2 from sidetable 1, take alarmclock 3 from sidetable 1, take creditcard 1 from sidetable 1, take keychain 1 from sidetable 1, take pen 2 from sidetable 1, take pen 3 from sidetable 1, take pencil 3 from sidetable 1, use desklamp 1
+Valid actions: examine alarmclock 1, examine desk 1, go to bed 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, go to sidetable 1, inventory, look, put alarmclock 1 in/on desk 1
 ```
 
 ### Example 2
-**Current State**
-You arrive at shelf 1. On the shelf 1, you see a cd 1, and a pen 1.\n\nYour task is to: put some pen on shelf.
+State: -= Welcome to TextWorld, ALFRED! =-
 
-**Current Valid Actions**
-examine shelf 1, go to armchair 1, go to bed 1, go to drawer 1, go to drawer 10, go to drawer 11, go to drawer 12, go to drawer 13, go to drawer 14, go to drawer 15, go to drawer 16, go to drawer 2, go to drawer 3, go to drawer 4, go to drawer 5, go to drawer 6, go to drawer 7, go to drawer 8, go to drawer 9, go to dresser 1, go to dresser 2, go to garbagecan 1, go to shelf 2, go to sidetable 1, go to sidetable 2, inventory, look, take cd 1 from shelf 1, take pen 1 from shelf 1
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a shelf 2, a shelf 1, and a sidetable 1.
 
-**Action**: some action
+Your task is to: put a alarmclock in desk.
+Valid actions: go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to shelf 1, go to shelf 2, go to sidetable 1, inventory, look
+Action: go to shelf 1
+
+State: You arrive at shelf 1. On the shelf 1, you see a cd 1, and a pen 1.\n\nYour task is to: put some pen on shelf.
+Valid Actions: examine shelf 1, go to armchair 1, go to bed 1, go to drawer 1, go to drawer 10, go to drawer 11, go to drawer 12, go to drawer 13, go to drawer 14, go to drawer 15, go to drawer 16, go to drawer 2, go to drawer 3, go to drawer 4, go to drawer 5, go to drawer 6, go to drawer 7, go to drawer 8, go to drawer 9, go to dresser 1, go to dresser 2, go to garbagecan 1, go to shelf 2, go to sidetable 1, go to sidetable 2, inventory, look, take cd 1 from shelf 1, take pen 1 from shelf 1
+Action: some action
 
 **Reasoning**
 When comparing the given action to all specified action formats, it is not similar any of them. Therefore, the next state will always be "Nothing happens." The next valid actions will also remain the same because of that.
 
 **Output**:
 ```plaintext
-Next State: 
-Nothing happens.
+Next State: Nothing happens.
 ```
 
 ```plaintext
-Valid actions:
-examine shelf 1, go to armchair 1, go to bed 1, go to drawer 1, go to drawer 10, go to drawer 11, go to drawer 12, go to drawer 13, go to drawer 14, go to drawer 15, go to drawer 16, go to drawer 2, go to drawer 3, go to drawer 4, go to drawer 5, go to drawer 6, go to drawer 7, go to drawer 8, go to drawer 9, go to dresser 1, go to dresser 2, go to garbagecan 1, go to shelf 2, go to sidetable 1, go to sidetable 2, inventory, look, take cd 1 from shelf 1, take pen 1 from shelf 1
+Valid actions: examine shelf 1, go to armchair 1, go to bed 1, go to drawer 1, go to drawer 10, go to drawer 11, go to drawer 12, go to drawer 13, go to drawer 14, go to drawer 15, go to drawer 16, go to drawer 2, go to drawer 3, go to drawer 4, go to drawer 5, go to drawer 6, go to drawer 7, go to drawer 8, go to drawer 9, go to dresser 1, go to dresser 2, go to garbagecan 1, go to shelf 2, go to sidetable 1, go to sidetable 2, inventory, look, take cd 1 from shelf 1, take pen 1 from shelf 1
 ```
 
 ### Example 3
-**Current State**
-You arrive at drawer 2. The drawer 2 is closed.\n\nYour task is to: put some pen on shelf.
+State: -= Welcome to TextWorld, ALFRED! =-
 
-**Current Valid Actions**
-open drawer 2, examine drawer 2, go to bed 1, go to cabinet 1, go to cabinet 2, go to cabinet 3, go to cabinet 4, go to desk 1, go to drawer 1, go to garbagecan 1, go to shelf 1, go to sidetable 1, inventory, look
+You are in the middle of a room. Looking quickly around you, you see a armchair 3, a armchair 2, a armchair 1, a bed 1, a cabinet 2, a cabinet 1, a desk 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a safe 1, and a sidetable 1.
 
-**Action**: open drawer 2
+Your task is to: put a pen in sidetable.
+Valid actions: go to armchair 1, go to armchair 2, go to armchair 3, go to bed 1, go to cabinet 1, go to cabinet 2, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to drawer 4, go to garbagecan 1, go to laundryhamper 1, go to safe 1, go to sidetable 1, inventory, look
+Action: go to drawer 4
+
+
+State: You arrive at drawer 4. The drawer 4 is closed.
+Valid actions: examine drawer 4, go to armchair 1, go to armchair 2, go to armchair 3, go to bed 1, go to cabinet 1, go to cabinet 2, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to safe 1, go to sidetable 1, inventory, look, open drawer 4
+Action: open drawer 4
 
 **Reasoning**
-This action has the same action format as **Opening a Receptacle**. This means the agent opened a receptacle, in this case, drawer 8. Drawer 8 will now be open and the agent can observe the objects located inside of it. Books, CDs, pencils, and cellphones are objects commonly found in drawers. Using this information we replace the {receptacle} and {objects} placeholders from the state format to produce the predicted next state.
-Given that we predict the next state to have the drawer opened, we must have new actions that interact with the new objects we observe from the open drawer. We must add actions that can pickup these objects. We must also add an action to close the shelf.
-
+This action has the same action format as **Opening a Receptacle**. This means the agent opened a receptacle, in this case, drawer 4. Drawer 4 will now be open and the agent can observe the objects located inside of it. We always assume that the goal object (alarmclock) is inside a receptacle after opening it. Using this information we replace the {receptacle} and {objects} placeholders from the state format to produce the predicted next state.  Given that we predict the next state to have the drawer opened, we must have new actions to pick up the goal object inside the drawer. We must also add an action to close the shelf.
 
 **Output**:
 ```plaintext
-Next State: 
-You open the drawer 2. The drawer 2 is open. In it, you see a cellphone 1.
+Next State: You open the drawer 4. The drawer 4 is open. In it, you see a alarmclock 1.
 ```
 
 ```plaintext
-Valid actions:
-close drawer 2, examine drawer 2, go to bed 1, go to cabinet 1, go to cabinet 2, go to cabinet 3, go to cabinet 4, go to desk 1, go to drawer 1, go to garbagecan 1, go to shelf 1, go to sidetable 1, inventory, look, take cellphone 1 from drawer 2
+Valid actions: close drawer 4, examine drawer 4, go to armchair 1, go to armchair 2, go to armchair 3, go to bed 1, go to cabinet 1, go to cabinet 2, go to desk 1, go to drawer 1, go to drawer 2, go to drawer 3, go to garbagecan 1, go to laundryhamper 1, go to safe 1, go to sidetable 1, inventory, look, take alarmclock 1 from drawer 4
 ```
 
 ### Example 4
-**Current State**
-You arrive at shelf 2. On the shelf 2, you see a desklamp 1.\n\nYour task is to: put some alarmclock on shelf.
+State: -= Welcome to TextWorld, ALFRED! =-
 
-**Current Valid Actions**
-examine alarmclock 1, examine shelf 2, go to bed 1, go to desk 1, go to desk 2, go to garbagecan 1, go to shelf 1, go to shelf 3, go to shelf 4, go to shelf 5, inventory, look, put alarmclock 1 in/on shelf 2, use desklamp 1
+You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, and a sidetable 1.
 
-**Action**: put alarmclock 1 in/on shelf 2
+Your task is to: put a book in bed.
+Valid actions: go to bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to garbagecan 1, go to shelf 1, go to shelf 2, go to shelf 3, go to shelf 4, go to shelf 5, go to shelf 6, go to shelf 7, go to shelf 8, go to sidetable 1, inventory, look
+Action: go to desk 1
+
+
+State: You arrive at desk 1. On the desk 1, you see a book 1.
+Valid actions: examine desk 1, go to bed 1, go to drawer 1, go to drawer 2, go to garbagecan 1, go to shelf 1, go to shelf 2, go to shelf 3, go to shelf 4, go to shelf 5, go to shelf 6, go to shelf 7, go to shelf 8, go to sidetable 1, inventory, look, take book 1 from desk 1
+Action: take book 1 from desk 1
+
+
+State: You pick up the book 1 from the desk 1.
+Valid actions: examine book 1, examine desk 1, go to bed 1, go to drawer 1, go to drawer 2, go to garbagecan 1, go to shelf 1, go to shelf 2, go to shelf 3, go to shelf 4, go to shelf 5, go to shelf 6, go to shelf 7, go to shelf 8, go to sidetable 1, inventory, look, put book 1 in/on desk 1
+Action: go to bed 1
+
+State: You arrive at bed 1. On the bed 1, you see a laptop 1, a pillow 2, and a pillow 1.
+Valid actions: examine bed 1, examine book 1, go to desk 1, go to drawer 1, go to drawer 2, go to garbagecan 1, go to shelf 1, go to shelf 2, go to shelf 3, go to shelf 4, go to shelf 5, go to shelf 6, go to shelf 7, go to shelf 8, go to sidetable 1, inventory, look, put book 1 in/on bed 1
+Action: put book 1 in/on bed 1
 
 **Reasoning**
-This action has the same action format as **Place an Object in/on a Receptacle**. Thus, the agent is trying to place an object in his inventory on to a visible receptacle. We assume that the object, alarmclock 2, is in the agent's possession. Alarmclock 2 will now be found on shelf 2 because the agent placed it on that receptacle.
-Given that the alarmclock 1 is now on shelf 2, we will no longer be able to put the alarmclock down. Instead, we will have a new action for taking the alarmclock. The rest of the actions should be the same.
+This action has the same action format as **Place an Object in/on a Receptacle**. Thus, the agent is trying to place an object in his inventory on to a visible receptacle. Based on the previous actions and states, we know that the agent has book 1 in their possession. Book 1 will now be found on bed 1 because the agent placed it on that receptacle.  Given that the book 1 is now on bed 1, we will no longer be able to put it down. Instead, we will have a new action for taking the book. The rest of the actions should be the same.
 
 **Output**:
 ```plaintext
-Next State: 
-You put the alarmclock 2 in/on the shelf 2.
+Next State: You put the book 1 in/on the bed 1.
 ```
 
 ```plaintext
-Valid actions:
-examine shelf 2, go to bed 1, go to desk 1, go to desk 2, go to garbagecan 1, go to shelf 1, go to shelf 3, go to shelf 4, go to shelf 5, inventory, look, take alarmclock 1 from shelf 2, use desklamp 1
+Valid actions: examine bed 1, go to desk 1, go to drawer 1, go to drawer 2, go to garbagecan 1, go to shelf 1, go to shelf 2, go to shelf 3, go to shelf 4, go to shelf 5, go to shelf 6, go to shelf 7, go to shelf 8, go to sidetable 1, inventory, look, take book 1 from bed 1, take laptop 1 from bed 1, take pillow 1 from bed 1, take pillow 2 from bed 1
 ```
 

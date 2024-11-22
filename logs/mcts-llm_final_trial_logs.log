@@ -12,7 +12,7 @@ SUCCESS, Total steps: 4, total reward: 99.65681818181818
 You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 8, a shelf 7, a shelf 6, a shelf 5, a shelf 4, a shelf 3, a shelf 2, a shelf 1, and a sidetable 1.
 
 Your task is to: put a book in bed.
-FAIL, Total steps: 10, total reward: -3.65
+SUCCESS, Total steps: 10, total reward: 98.54333333333334
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
@@ -40,7 +40,7 @@ FAIL, Total steps: 10, total reward: -4.268571428571429
 You are in the middle of a room. Looking quickly around you, you see a bed 1, a desk 1, a drawer 2, a drawer 1, a garbagecan 1, a shelf 1, and a sidetable 1.
 
 Your task is to: put a creditcard in shelf.
-FAIL, Total steps: 10, total reward: -4.29
+SUCCESS, Total steps: 8, total reward: 98.51
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
@@ -54,7 +54,7 @@ SUCCESS, Total steps: 4, total reward: 99.63333333333334
 You are in the middle of a room. Looking quickly around you, you see a armchair 3, a armchair 2, a armchair 1, a bed 1, a cabinet 2, a cabinet 1, a desk 1, a drawer 4, a drawer 3, a drawer 2, a drawer 1, a garbagecan 1, a laundryhamper 1, a safe 1, and a sidetable 1.
 
 Your task is to: put a pen in sidetable.
-FAIL, Total steps: 10, total reward: -3.7399999999999998
+SUCCESS, Total steps: 4, total reward: 99.64181818181818
 --------------------------------------------------
 -= Welcome to TextWorld, ALFRED! =-
 
@@ -69,6 +69,6 @@ You are in the middle of a room. Looking quickly around you, you see a armchair 
 
 Your task is to: put a pillow in armchair.
 FAIL, Total steps: 10, total reward: -3.966666666666667
-Average reward: 27.093443722943725
-Num SUCCESS: 3
-Num FAIL: 7
+Average reward: 57.93095887
+Num SUCCESS: 6
+Num FAIL: 4
