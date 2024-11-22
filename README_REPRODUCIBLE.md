@@ -28,17 +28,8 @@
    pip install numpy==1.24.2 --force-reinstall
    ```
 
-4. Run following script to setup ALFWorld environment
+4. Run the script
 
    ```sh
-   sh alfworld-setup.sh
+   sh reproducible.sh
    ```
-
-5. Run the script
-
-   ```bash
-   python reproducible.py
-   ```
-
-   
-
