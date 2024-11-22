@@ -46,7 +46,7 @@ else:
 agent = None
 
 if args.agent == "llm":
-    agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_policy"])
+    agent = LLMPolicyAgent(env, device="mps", debug=False, **cfg["llm_policy"])
 elif args.agent == "random":
     agent = RandomAgent(env, seed = args.seed)
 elif args.agent == "mcts":
@@ -57,7 +57,7 @@ elif args.agent == "mcts-expert":
     mcts_args = cfg["mcts_expert"]["mcts_args"]
     agent = MCTSAgent(env, policy=ElevatorExpertPolicyAgent(), debug=False, args=mcts_args)
 elif args.agent == "mcts-llm":
-    llm_agent = LLMPolicyAgent(env, device="cuda", debug=False, **cfg["llm_mcts"]["llm_policy"])
+    llm_agent = LLMPolicyAgent(env, device="mps", debug=False, **cfg["llm_mcts"]["llm_policy"])
     mcts_args = cfg["llm_mcts"]["mcts_args"]
     agent = MCTSAgent(env, policy=llm_agent, debug=False, args=mcts_args)
 elif args.agent == "nn":
@@ -83,7 +83,10 @@ for i in range(num_episodes_to_run):
 
     if args.seed is not None:
         seed = args.seed + i
-        state, _ = env.reset(seed=seed)
+        if args.agent == "nn" or args.agent == "random":
+            state, _ = env.reset(seed=seed)
+        else:
+            state, _ = env.reset()
     else:
         state, _ = env.reset()
 
