@@ -3,7 +3,6 @@
 import gym
 import alfworld.agents.environment as environment
 import yaml
-import re
 import copy
 
 from alfworld.agents.modules.generic import EpisodicCountingMemory, ObjCentricEpisodicMemory
@@ -18,8 +17,8 @@ class ALFWorldEnvironment(gym.Wrapper):
 
         self.env_stack = []
         self.taskdir = ''
-        self.current_goal = ''
 
+        self.state_history = []
         self.action_history = []
         self.episodic_counting_memory = EpisodicCountingMemory() # Tracks newly explored states
         self.obj_centric_episodic_counting_memory = ObjCentricEpisodicMemory() # Tracks newly explored objects
@@ -35,29 +34,12 @@ class ALFWorldEnvironment(gym.Wrapper):
         return env
 
     def reset(self):
+        self.state_history = []
         self.action_history = []
         self.episodic_counting_memory.reset()
         self.obj_centric_episodic_counting_memory.reset()
 
-        match = False
-        TOTAL_NUM_RETRIES = 10
-        num_retries = 0
-        while not match and num_retries < TOTAL_NUM_RETRIES:
-            try:
-                state, infos = self.env.reset()
-
-                find_goal_regex = r"Your task is to:\s+(.*)"
-                match = re.search(find_goal_regex, state[0])
-
-                if match:
-                    self.current_goal = match.group()
-                else:
-                    raise Exception("Could not find valid task with goal.")
-            except:
-                if num_retries >= TOTAL_NUM_RETRIES-1:
-                    raise
-                num_retries += 1
-
+        state, infos = self.env.reset()
         self.taskdir = self._extract_taskdir(infos)
 
         # Add initial state to memory
@@ -65,7 +47,7 @@ class ALFWorldEnvironment(gym.Wrapper):
         self.obj_centric_episodic_counting_memory.push(state)
 
         state = self._map_state(state, infos)
-
+        self.state_history.append(state)
         return state, infos
     
     def _extract_taskdir(self, infos):
@@ -91,7 +73,10 @@ class ALFWorldEnvironment(gym.Wrapper):
             self.env.step(action)
 
         # Return action_history, episodic_counting_memory, obj_centric_episodic_counting_memory
-        return (copy.deepcopy(self.action_history), copy.deepcopy(self.episodic_counting_memory), copy.deepcopy(self.obj_centric_episodic_counting_memory))
+        return (copy.deepcopy(self.state_history),
+                copy.deepcopy(self.action_history),
+                copy.deepcopy(self.episodic_counting_memory),
+                copy.deepcopy(self.obj_centric_episodic_counting_memory))
 
     def restore_checkpoint(self, checkpoint):
         '''
@@ -101,15 +86,16 @@ class ALFWorldEnvironment(gym.Wrapper):
         self.env.close()
         self.env = self.env_stack.pop()
 
-        self.action_history, self.episodic_counting_memory, self.obj_centric_episodic_counting_memory = checkpoint
+        self.state_history, self.action_history, self.episodic_counting_memory, self.obj_centric_episodic_counting_memory = checkpoint
 
     def step(self, action):
         next_state, reward, done, infos = self.env.step([action])
+
         curr_reward = self._get_current_reward(reward[0], next_state)
-        next_state = self._map_state(next_state, infos, self.current_goal)
 
+        next_state = self._map_state(next_state, infos)
+        self.state_history.append(next_state)
         self.action_history.append(action)
-
         return next_state, curr_reward, done[0], None, infos
 
     def _get_current_reward(self, step_reward, next_state):
@@ -131,7 +117,7 @@ class ALFWorldEnvironment(gym.Wrapper):
         return state['valid_actions']
     
     def get_valid_actions_text(self, state):
-        return state['valid_actions']
+        return state['valid_actions'] # Valid actions already in text
     
     def state_to_text(self, state):
         return state['text_state']
@@ -142,18 +128,17 @@ class ALFWorldEnvironment(gym.Wrapper):
     def action_txt_to_idx(self, action_txt, valid_actions_txt):
         return valid_actions_txt.index(action_txt)
     
-    def goal_to_text(self):
-        return self.current_goal
+    def get_state_and_action_history(self):
+        return self.state_history, self.action_history
 
     def _load_config(self, config_path):
         with open(config_path) as reader:
             config = yaml.safe_load(reader)
         return config
 
-    def _map_state(self, state, infos, goal = None):
-        goal_text = f'\n\n{self.current_goal}' if goal is not None else ''
+    def _map_state(self, state, infos):
         return {
-            'text_state': state[0] + goal_text,
+            'text_state': state[0],
             'valid_actions': infos['admissible_commands'][0],
         }
     

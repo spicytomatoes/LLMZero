@@ -51,7 +51,7 @@ def log(log_file, text):
 def run_single_trial(env, agent, log_file):
     num_steps = 0
     total_reward = 0
-    max_num_steps = 40
+    max_num_steps = 10
 
     state, _ = env.reset()
     log(log_file, state['text_state'])
@@ -63,6 +63,11 @@ def run_single_trial(env, agent, log_file):
         num_steps += 1
         total_reward += reward
         print(f"Step {num_steps}, action: {env.action_to_text(action)}, reward: {reward}, total reward: {total_reward}")
+
+        valid_actions_text = env.get_valid_actions_text(next_state)
+        state_text = env.state_to_text(next_state)
+        print(state_text)
+        print(valid_actions_text)
         
         if done:
             break
